@@ -8,12 +8,8 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.set('view engine', 'ejs');
 
 app.get('/', function (req, res) {
-  //res.send('Hello World!')
-  res.render('index');
-})
-
-app.post('/', function(req,res) {  
-  var u = 'https://pub.orcid.org/v2.0/search/?q=ringgold-org-id:'+ req.body.ringgold;
+  var u = 'https://pub.orcid.org/v2.0/search/?q=ringgold-org-id:'+ req.query.ringgold;
+  var n = "Test";
   var options = {
     url: u,
     headers: {
@@ -27,10 +23,12 @@ app.post('/', function(req,res) {
       var info = JSON.parse(body);
       console.log("");
       console.log(info["num-found"]);
+      n = info["num-found"];
     }
   }
 
   request(options, callback)
+  res.render('index', {count: n, error: null});
 })
 
 app.listen(3000, function () {
