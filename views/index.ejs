@@ -185,8 +185,17 @@
         </form>
       </fieldset>
     </div>
+    <div id="count">
     <% if(count !== null){ %>
-      <p><%= count %></p>
+      <p>Total ORCiDs Found: <%= count %></p>
     <% } %>
+  </div>
+  <div id="orcids">
+    <ul class=”list-group”>
+     <% orcids.forEach( function( orcid ) { %>
+       <li class=”list-group-item”><%= orcid["orcid-identifier"].uri %></li>
+     <% }) %>
+    </ul>
+  </div>
   </body>
 </html>
