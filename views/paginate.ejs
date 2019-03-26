@@ -1,0 +1,23 @@
+<div class="grid">
+    <div class="col-1-1">
+        <div class="paginate">
+
+
+                <ul>
+                <% if (paginate.hasPreviousPages) { %>
+                    <li>
+                        <a href="<%=paginate.href().prev %>">Previous</a>
+                    </li>
+                <% } %>
+
+                <% if (paginate.hasNextPages) { %>
+                    <li>
+                        <a href="<%=paginate.href() %>">Next</a>
+                    </li>
+                <% } %>
+                </ul>
+
+
+        </div>
+    </div>
+</div>
