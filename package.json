@@ -13,6 +13,7 @@
     "ejs": "^2.6.1",
     "express": "^4.16.4",
     "express-paginate": "^1.0.0",
-    "express-pagination": "0.0.5"
+    "express-pagination": "0.0.5",
+    "request": "^2.88.0"
   }
 }
