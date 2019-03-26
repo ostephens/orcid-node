@@ -4,6 +4,7 @@ Requires:
 
 * npm
 * nodejs
+* request
 * express
 * express-paginate
 
