@@ -1,6 +1,3 @@
-#heroku
-procfile
-
 # Logs
 logs
 *.log
