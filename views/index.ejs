@@ -5,6 +5,16 @@
     <title>Test</title>
     <link rel="stylesheet" type="text/css" href="/css/style.css">
     <link href='https://fonts.googleapis.com/css?family=Open+Sans:300' rel='stylesheet' type='text/css'>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script> 
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.19/css/jquery.dataTables.css">
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.js"></script>
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/buttons/1.5.6/js/dataTables.buttons.min.js"></script>
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/buttons/1.5.6/js/buttons.flash.min.js"></script>
+    <script type="text/javascript" charset="utf8" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+    <script type="text/javascript" charset="utf8" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+    <script type="text/javascript" charset="utf8" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/buttons/1.5.6/js/buttons.html5.min.js"></script>
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/buttons/1.5.6/js/buttons.print.min.js"></script>
   </head>
   <body>
     <div class="container">
@@ -190,15 +200,72 @@
       <p>Total ORCiDs Found: <%= count %></p>
     <% } %>
   </div>
-  <div id="orcids">
-    <ul class=”list-group”>
+  <table id="orcids">
+    <thead>
+      <tr>
+        <th>ORCIC ID</th><th>Name</th><th>Employment</th>
+      </tr>
+    </thead>
+    <tbody>
      <% orcids.forEach( function( orcid ) { %>
-       <li class=”list-group-item”><%= orcid["orcid-identifier"].uri %></li>
+       <tr class="orcid-info">
+         <td class="orcid" valign="top"><%= orcid["orcid-identifier"].path %></td>
+         <td class="name" valign="top"></td>
+         <td class="employment" valign="top"></td>
+       </tr>
      <% }) %>
-    </ul>
-  </div>
+     <tbody>
   <div class="paginate">
         <% include ./paginate %>
   </div>
+  <script>
+    $(document).ready( function () {
+      $('td.orcid').each(function(i, c) {
+          $.ajax({
+              url: 'https://pub.orcid.org/v2.1/'+$(c).text(),
+              type: 'GET',
+              dataType: 'json',
+              beforeSend: setHeader
+            }).
+            done(function (msg) {
+              var name = "Anonymous";
+              if (msg["person"]["name"]["given-names"]["value"] != null) {
+                name = msg["person"]["name"]["given-names"]["value"];
+              }
+              if (msg["person"]["name"]["family-name"]["value"] != null) {
+                name += " "+msg["person"]["name"]["family-name"]["value"];
+              }
+              $(c).parent().find('td.name').html(name);
+              msg["activities-summary"]["employments"]["employment-summary"].forEach(function(emp){
+                var org = emp["organization"]["name"] || "No organization name";
+                var role = emp["role-title"] || "No job title";
+                var startYear = "*";
+                if (emp["start-date"] != null) {
+                  startYear = emp["start-date"]["year"]["value"] || "*";
+                }
+                var endYear = "*";
+                if (emp["end-date"] != null) {
+                  endYear = emp["end-date"]["year"]["value"] || "*";
+                }
+                $(c).parent().find('td.employment').append(" <div>"+
+                org + ": " + role + " " +
+                startYear+" -> "+endYear+"</div>");
+              });
+            });
+          });
+
+          function setHeader(xhr) {
+            xhr.setRequestHeader('Accept', 'application/vnd.orcid+json');
+          }
+        } );
+        $( document ).ajaxStop(function() {
+          $('#orcids').DataTable({
+            dom: 'Bfrtip',
+            buttons: [
+            'copy', 'csv', 'excel', 'pdf', 'print'
+            ]
+          });
+        });
+  </script>
   </body>
 </html>

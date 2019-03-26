@@ -5,15 +5,15 @@
 
                 <ul>
                 <% if (paginate.hasPreviousPages) { %>
-                    <li>
+                    <div>
                         <a href="<%=paginate.href(true) %>">Previous</a>
-                    </li>
+                    </div>
                 <% } %>
 
                 <% if (paginate.hasNextPages) { %>
-                    <li>
+                    <div>
                         <a href="<%=paginate.href() %>">Next</a>
-                    </li>
+                    </div>
                 <% } %>
                 </ul>
 
