@@ -32,8 +32,6 @@ app.get('/', function (req, res) {
     
     //set default variables
    var totalOrcids = 0,
-   pageSize = 10,
-   currentPage = 1,
    orcidsList = [];
    
     function callback(error, response, body) {
@@ -50,7 +48,7 @@ app.get('/', function (req, res) {
     }
     request(options, callback);
   } else {
-    res.render("index", {count: null, orcids: [], pageCount: 0, currentPage: 1, error: null});
+    res.render("index", {count: null, orcids: [], pageCount: 0, itemCount: 0, error: null});
   }
 })
 
