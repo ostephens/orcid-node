@@ -1,54 +1,75 @@
 const request = require('request');
 const express = require('express');
-const paginate = require('express-paginate');
+const fetch = require('node-fetch');
 const app = express();
 const bodyParser = require('body-parser');
 
-app.use(paginate.middleware(10, 200));
 app.use(express.static('public'));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.set('view engine', 'ejs');
 
 app.get('/', function (req, res) {
   if (typeof req.query.ringgold !== "undefined") {
+    
     // ORCiD API Search query params:
     // q = query
     // start = first record to return (defaults to 1)
     // rows = number of records to return (defaults to 100, max 200)
     var u = 'https://pub.orcid.org/v2.0/search/?q=ringgold-org-id:'+
              req.query.ringgold +
-             '&start=' + (req.query.page-1)*req.query.limit +
-             '&rows=' + req.query.limit;
+             '&rows=200';
     //to do local testing uncomment the next line
     //var u = "http://localhost:3000/orcid-search-response"
-    console.log(u);
-    var n = "Test";  
     var options = {
       url: u,
       headers: {
       'Accept': 'application/vnd.orcid+json'
       }
     };
+    var n = 0;
     
     //set default variables
-   var totalOrcids = 0,
-   orcidsList = [];
+   var orcidsList = [];
    
-    function callback(error, response, body) {
+    async function c() {
+      
+    }
+   
+    async function callback(error, response, body) {
       if (!error && response.statusCode == 200) {
         var info = JSON.parse(body);
         n = info["num-found"];
-        const itemCount = n;
-        const pageCount = Math.ceil(n / req.query.limit);
         console.log("Query found " + n + " ORCiD IDs");
-        orcidsList = info.result;
-        //console.log(orcidsList);
-        res.render('index', {count: n, orcids: orcidsList, pageCount: pageCount, itemCount: itemCount, pages: paginate.getArrayPages(req)(3, pageCount, req.query.page), error: null});
+        for (var k in info["result"]) {
+          orcidsList.push(info["result"][k]["orcid-identifier"]);
+        }
+        if(n > 200){          
+          for(i = 1; i-1 < Math.floor(n/200); i++) {
+            options.url = 'https://pub.orcid.org/v2.0/search/?q=ringgold-org-id:'+
+                     req.query.ringgold +
+                     '&start='+((i*200)+1)+
+                     '&rows=200';
+             let response = await fetch(options.url, {
+               headers: options.headers
+             })
+             let data = await response.json()
+             for (var k in data["result"]) {
+               orcidsList.push(data["result"][k]["orcid-identifier"]);
+               //console.log(data["result"][k]["orcid-identifier"]);
+             }
+            console.log(orcidsList.length);
+            console.log(options.url);
+            console.log(orcidsList.length);
+            
+          }
+        }
+        console.log(orcidsList.length);
+        res.render('index', {count: n, orcids: orcidsList, itemCount: n, error: null});
       }
     }
     request(options, callback);
   } else {
-    res.render("index", {count: null, orcids: [], pageCount: 0, itemCount: 0, error: null});
+    res.render("index", {count: null, orcids: [], itemCount: 0, error: null});
   }
 })
 

@@ -209,15 +209,12 @@
     <tbody>
      <% orcids.forEach( function( orcid ) { %>
        <tr class="orcid-info">
-         <td class="orcid" valign="top"><%= orcid["orcid-identifier"].path %></td>
+         <td class="orcid" valign="top"><%= orcid.path %></td>
          <td class="name" valign="top"></td>
          <td class="employment" valign="top"></td>
        </tr>
      <% }) %>
      <tbody>
-  <div class="paginate">
-        <% include ./paginate %>
-  </div>
   <script>
     $(document).ready( function () {
       $('td.orcid').each(function(i, c) {
@@ -229,11 +226,13 @@
             }).
             done(function (msg) {
               var name = "Anonymous";
-              if (msg["person"]["name"]["given-names"]["value"] != null) {
-                name = msg["person"]["name"]["given-names"]["value"];
-              }
-              if (msg["person"]["name"]["family-name"]["value"] != null) {
-                name += " "+msg["person"]["name"]["family-name"]["value"];
+              if(msg["person"]["name"] != null){
+                if (msg["person"]["name"]["given-names"] != null) {
+                  name = msg["person"]["name"]["given-names"]["value"];
+                }
+                if (msg["person"]["name"]["family-name"] != null) {
+                  name += " "+msg["person"]["name"]["family-name"]["value"];
+                }
               }
               $(c).parent().find('td.name').html(name);
               msg["activities-summary"]["employments"]["employment-summary"].forEach(function(emp){
