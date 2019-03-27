@@ -204,6 +204,7 @@
     <thead>
       <tr>
         <th>ORCIC ID</th><th>Name</th><th>Education</th><th>Employment</th>
+        <th>IDs</th><th>Emails</th><th>Work count</th>
       </tr>
     </thead>
     <tbody>
@@ -213,12 +214,16 @@
          <td class="name" valign="top"></td>
          <td class="education" valign="top"></td>
          <td class="employment" valign="top"></td>
+         <td class="ids" valign="top"></td>
+         <td class="email" valign="top"></td>
+         <td class="work-count" valign="top"></td>
        </tr>
      <% }) %>
      <tbody>
      <tfoot>
        <tr>
          <th>ORCIC ID</th><th>Name</th><th>Education</th><th>Employment</th>
+         <th>IDs</th><th>Emails</th><th>Work count</th>
        </tr>
      </tfoot>
   <script>
@@ -256,21 +261,44 @@
                 org + ": " + role + " " +
                 startYear+" -> "+endYear+"</div>");
               });
-              msg["activities-summary"]["educations"]["education-summary"].forEach(function(emp){
-                var org = emp["organization"]["name"] || "No organization name";
-                var role = emp["role-title"] || "No course of study";
+              msg["activities-summary"]["educations"]["education-summary"].forEach(function(edu){
+                var org = edu["organization"]["name"] || "No organization name";
+                var role = edu["role-title"] || "No course of study";
                 var startYear = "*";
-                if (emp["start-date"] != null) {
-                  startYear = emp["start-date"]["year"]["value"] || "*";
+                if (edu["start-date"] != null) {
+                  startYear = edu["start-date"]["year"]["value"] || "*";
                 }
                 var endYear = "*";
-                if (emp["end-date"] != null) {
-                  endYear = emp["end-date"]["year"]["value"] || "*";
+                if (edu["end-date"] != null) {
+                  endYear = edu["end-date"]["year"]["value"] || "*";
                 }
                 $(c).parent().find('td.education').append(" <div>"+
                 org + ": " + role + " " +
                 startYear+" -> "+endYear+"</div>");
-              });
+                });
+                if(msg["person"]["emails"] != null ) {
+                  if(msg["person"]["emails"]["email"] != null){
+                    msg["person"]["emails"]["email"].forEach(function(email) {
+                      var em = email["email"]
+                      $(c).parent().find('td.email').append(" <div>"+
+                      em+"</div>");
+                    });
+                  }
+                }
+                if(msg["person"]["external-identifiers"] != null ) {
+                  if(msg["person"]["external-identifiers"]["external-identifier"] != null){
+                    msg["person"]["external-identifiers"]["external-identifier"].forEach(function(id) {
+                      var idtype = id["external-id-type"];
+                      var idvalue = id["external-id-value"];
+                      $(c).parent().find('td.ids').append(" <div>"+
+                      idtype+": "+idvalue+"</div>");
+                    });
+                  }
+                }
+                if(msg["activities-summary"]["works"] != null) {
+                  var wc = msg["activities-summary"]["works"]["group"].length
+                  $(c).parent().find('td.work-count').append(wc);
+                }
             });
           });
 
