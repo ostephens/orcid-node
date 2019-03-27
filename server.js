@@ -19,7 +19,7 @@ app.get('/', function (req, res) {
              req.query.ringgold +
              '&rows=200';
     //to do local testing uncomment the next line
-    //var u = "http://localhost:3000/orcid-search-response"
+    //var u = "http://localhost:4000/orcid-search-response"
     var options = {
       url: u,
       headers: {
