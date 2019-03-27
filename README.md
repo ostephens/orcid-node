@@ -11,6 +11,9 @@ The information currently displayed by the application is:
 * Name
 * List of Education entries
 * List of Employment entries
+* List of additional identifiers for the person
+* List of email addresses for the person
+* Count of the number of works on their ORCID record
 
 Because of the way the application works, the user experience is very S L O W, but a patient user will eventually get a full report on ORCIDS that are linked to the selected institution by either employment or education.
 
