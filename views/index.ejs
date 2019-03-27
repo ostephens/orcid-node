@@ -203,7 +203,7 @@
   <table id="orcids">
     <thead>
       <tr>
-        <th>ORCIC ID</th><th>Name</th><th>Employment</th>
+        <th>ORCIC ID</th><th>Name</th><th>Education</th><th>Employment</th>
       </tr>
     </thead>
     <tbody>
@@ -211,6 +211,7 @@
        <tr class="orcid-info">
          <td class="orcid" valign="top"><%= orcid.path %></td>
          <td class="name" valign="top"></td>
+         <td class="education" valign="top"></td>
          <td class="employment" valign="top"></td>
        </tr>
      <% }) %>
@@ -247,6 +248,21 @@
                   endYear = emp["end-date"]["year"]["value"] || "*";
                 }
                 $(c).parent().find('td.employment').append(" <div>"+
+                org + ": " + role + " " +
+                startYear+" -> "+endYear+"</div>");
+              });
+              msg["activities-summary"]["educations"]["education-summary"].forEach(function(emp){
+                var org = emp["organization"]["name"] || "No organization name";
+                var role = emp["role-title"] || "No course of study";
+                var startYear = "*";
+                if (emp["start-date"] != null) {
+                  startYear = emp["start-date"]["year"]["value"] || "*";
+                }
+                var endYear = "*";
+                if (emp["end-date"] != null) {
+                  endYear = emp["end-date"]["year"]["value"] || "*";
+                }
+                $(c).parent().find('td.education').append(" <div>"+
                 org + ": " + role + " " +
                 startYear+" -> "+endYear+"</div>");
               });
