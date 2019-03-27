@@ -8,6 +8,7 @@ This is a Simple nodejs app for searching for ORCiDs by Ringgold ID for UK HE in
 
 The information currently displayed by the application is:
 * ORCID ID
+* Last modified date
 * Name
 * List of Education entries
 * List of Employment entries

@@ -203,14 +203,15 @@
   <table id="orcids">
     <thead>
       <tr>
-        <th>ORCIC ID</th><th>Name</th><th>Education</th><th>Employment</th>
-        <th>IDs</th><th>Emails</th><th>Work count</th>
+        <th>ORCIC ID</th><th>Last updated</th><th>Name</th><th>Education</th>
+        <th>Employment</th><th>IDs</th><th>Emails</th><th>Work count</th>
       </tr>
     </thead>
     <tbody>
      <% orcids.forEach( function( orcid ) { %>
        <tr class="orcid-info">
          <td class="orcid" valign="top"><%= orcid.path %></td>
+         <td class="updated" valign="top"></td>
          <td class="name" valign="top"></td>
          <td class="education" valign="top"></td>
          <td class="employment" valign="top"></td>
@@ -222,8 +223,8 @@
      <tbody>
      <tfoot>
        <tr>
-         <th>ORCIC ID</th><th>Name</th><th>Education</th><th>Employment</th>
-         <th>IDs</th><th>Emails</th><th>Work count</th>
+         <th>ORCIC ID</th><th>Last updated</th><th>Name</th><th>Education</th>
+         <th>Employment</th><th>IDs</th><th>Emails</th><th>Work count</th>
        </tr>
      </tfoot>
   <script>
@@ -236,6 +237,11 @@
               beforeSend: setHeader
             }).
             done(function (msg) {
+              if(msg["history"]["last-modified-date"] != null){
+                  var et = msg["history"]["last-modified-date"]["value"];
+                  var ud = new Date(et).toISOString();
+                  $(c).parent().find('td.updated').html(ud.substring(0,10));
+              }
               var name = "Anonymous";
               if(msg["person"]["name"] != null){
                 if (msg["person"]["name"]["given-names"] != null) {
