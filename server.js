@@ -79,7 +79,7 @@ app.get('/orcid-search-response', function(req, res) {
   res.render('orcid-search-response');
 });
 
-app.get('/orcid/:orcid', cache('2 hours'), function (req, res) {
+app.get('/orcid/:orcid', cache('1 day'), function (req, res) {
   var orcidJson;
   if (typeof req.params["orcid"] !== "undefined") {
     
