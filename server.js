@@ -1,6 +1,8 @@
 const request = require('request');
 const express = require('express');
 const fetch = require('node-fetch');
+const apicache = require('apicache');
+const cache = apicache.middleware
 const app = express();
 const bodyParser = require('body-parser');
 
@@ -8,7 +10,7 @@ app.use(express.static('public'));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.set('view engine', 'ejs');
 
-app.get('/', function (req, res) {
+app.get('/', cache('2 hours'), function (req, res) {
   if (typeof req.query.ringgold !== "undefined") {
     
     // ORCiD API Search query params:
@@ -75,6 +77,35 @@ app.get('/', function (req, res) {
 
 app.get('/orcid-search-response', function(req, res) {
   res.render('orcid-search-response');
+});
+
+app.get('/orcid/:orcid', cache('2 hours'), function (req, res) {
+  var orcidJson;
+  if (typeof req.params["orcid"] !== "undefined") {
+    
+    // ORCiD API Search query params:
+    // q = query
+    // start = first record to return (defaults to 1)
+    // rows = number of records to return (defaults to 100, max 200)
+    var u = 'https://pub.orcid.org/v2.1/'+req.params["orcid"];
+    //to do local testing uncomment the next line
+    //var u = "http://localhost:4000/orcid-search-response"
+    var options = {
+      url: u,
+      headers: {
+      'Accept': 'application/vnd.orcid+json'
+      }
+    };
+    function callback(error, response, body) {
+      if (!error && response.statusCode == 200) {
+        orcidJson = JSON.parse(body);
+        res.send(orcidJson);
+      }
+    }
+    request(options, callback);
+  } else {
+    res.send({error: 'message'})
+  }
 });
 
 app.listen(process.env.PORT || 4000, function () {

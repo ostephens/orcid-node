@@ -231,7 +231,7 @@
     $(document).ready( function () {
       $('td.orcid').each(function(i, c) {
           $.ajax({
-              url: 'https://pub.orcid.org/v2.1/'+$(c).text(),
+              url: './orcid/'+$(c).text(),
               type: 'GET',
               dataType: 'json',
               beforeSend: setHeader
