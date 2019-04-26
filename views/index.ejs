@@ -261,7 +261,9 @@
                 }
                 var endYear = "*";
                 if (emp["end-date"] != null) {
-                  endYear = emp["end-date"]["year"]["value"] || "*";
+                  if(emp["end-date"]["year"] != null) {
+                    endYear = emp["end-date"]["year"]["value"] || "*";
+                  }
                 }
                 $(c).parent().find('td.employment').append(" <div>"+
                 org + ": " + role + " " +
