@@ -276,7 +276,9 @@
                 }
                 var endYear = "*";
                 if (edu["end-date"] != null) {
-                  endYear = edu["end-date"]["year"]["value"] || "*";
+                  if(edu["end-date"]["year"] != null) {
+                    endYear = edu["end-date"]["year"]["value"] || "*";
+                  }
                 }
                 $(c).parent().find('td.education').append(" <div>"+
                 org + ": " + role + " " +
