@@ -237,6 +237,7 @@
               beforeSend: setHeader
             }).
             done(function (msg) {
+              var pc = ";"; //character used to partition multi-value fields
               if(msg["history"]["last-modified-date"] != null){
                   var et = msg["history"]["last-modified-date"]["value"];
                   var ud = new Date(et).toISOString();
@@ -252,7 +253,12 @@
                 }
               }
               $(c).parent().find('td.name').html(name);
-              msg["activities-summary"]["employments"]["employment-summary"].forEach(function(emp){
+              msg["activities-summary"]["employments"]["employment-summary"].forEach(function(emp,idx,array){
+                if (idx === array.length - 1){ 
+                  partitionCharacter = "";
+                } else {
+                  partitionCharacter = pc;
+                }
                 var org = emp["organization"]["name"] || "No organization name";
                 var role = emp["role-title"] || "No job title";
                 var startYear = "*";
@@ -267,9 +273,14 @@
                 }
                 $(c).parent().find('td.employment').append(" <div>"+
                 org + ": " + role + " " +
-                startYear+" -> "+endYear+"</div>");
+                startYear+" -> "+endYear+partitionCharacter+"</div>");
               });
-              msg["activities-summary"]["educations"]["education-summary"].forEach(function(edu){
+              msg["activities-summary"]["educations"]["education-summary"].forEach(function(edu,idx,array){
+                if (idx === array.length - 1){ 
+                  partitionCharacter = "";
+                } else {
+                  partitionCharacter = pc;
+                }
                 var org = edu["organization"]["name"] || "No organization name";
                 var role = edu["role-title"] || "No course of study";
                 var startYear = "*";
@@ -284,24 +295,34 @@
                 }
                 $(c).parent().find('td.education').append(" <div>"+
                 org + ": " + role + " " +
-                startYear+" -> "+endYear+"</div>");
+                startYear+" -> "+endYear+partitionCharacter+"</div>");
                 });
                 if(msg["person"]["emails"] != null ) {
                   if(msg["person"]["emails"]["email"] != null){
-                    msg["person"]["emails"]["email"].forEach(function(email) {
+                    msg["person"]["emails"]["email"].forEach(function(email,idx,array) {
+                      if (idx === array.length - 1){ 
+                        partitionCharacter = "";
+                      } else {
+                        partitionCharacter = pc;
+                      }
                       var em = email["email"]
                       $(c).parent().find('td.email').append(" <div>"+
-                      em+"</div>");
+                      em+partitionCharacter+"</div>");
                     });
                   }
                 }
                 if(msg["person"]["external-identifiers"] != null ) {
                   if(msg["person"]["external-identifiers"]["external-identifier"] != null){
-                    msg["person"]["external-identifiers"]["external-identifier"].forEach(function(id) {
+                    msg["person"]["external-identifiers"]["external-identifier"].forEach(function(id,idx,array) {
+                      if (idx === array.length - 1){ 
+                        partitionCharacter = "";
+                      } else {
+                        partitionCharacter = pc;
+                      }
                       var idtype = id["external-id-type"];
                       var idvalue = id["external-id-value"];
                       $(c).parent().find('td.ids').append(" <div>"+
-                      idtype+": "+idvalue+"</div>");
+                      idtype+": "+idvalue+partitionCharacter+"</div>");
                     });
                   }
                 }
