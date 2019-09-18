@@ -2,10 +2,10 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <title>Test</title>
+    <title>ORCID Search</title>
     <link rel="stylesheet" type="text/css" href="/css/style.css">
     <link href='https://fonts.googleapis.com/css?family=Open+Sans:300' rel='stylesheet' type='text/css'>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script> 
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.19/css/jquery.dataTables.css">
     <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.js"></script>
     <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/buttons/1.5.6/js/dataTables.buttons.min.js"></script>
@@ -15,11 +15,149 @@
     <script type="text/javascript" charset="utf8" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
     <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/buttons/1.5.6/js/buttons.html5.min.js"></script>
     <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/buttons/1.5.6/js/buttons.print.min.js"></script>
+    <script type="text/javascript" charset="utf8" src="/js/script.js"></script>
   </head>
-  <body>
+  <body onload="selectRegion()" >
     <div class="container">
       <fieldset>
-        <form action="/" method="get">
+        <form action="/" id="regionForm">
+          <label for="region">Region:</label>
+          <select name="region" id="region" onchange="selectRegion()">
+            <option value="us-form">USA</option>
+            <option value="uk-form">UK</option>
+          </select>
+        </form>
+        <form action="/" method="get" id="us-form">
+          <label for="ringgold">Institution:</label>
+          <select name="ringgold">
+            <option value="8363">American University</option>
+            <option value="7864">Arizona State University</option>
+            <option value="1383">Auburn University</option>
+            <option value="1421">Augusta University</option>
+            <option value="14643">Baylor University</option>
+            <option value="6019">Boston College</option>
+            <option value="1846">Boston University</option>
+            <option value="8244">Brandeis University</option>
+            <option value="6752">Brown University</option>
+            <option value="4517">Bucknell University</option>
+            <option value="33320">California Digital Library</option>
+            <option value="14666">California State University Fullerton</option>
+            <option value="14671">California State University Northridge</option>
+            <option value="6612">Carnegie Mellon University</option>
+            <option value="2546">Case Western Reserve University</option>
+            <option value="8365">Catholic University of America</option>
+            <option value="2545">Clemson University</option>
+            <option value="3447">Colorado State University</option>
+            <option value="5922">Cornell University</option>
+            <option value="3728">Dartmouth College</option>
+            <option value="6527">Drexel University</option>
+            <option value="3065">Duke University</option>
+            <option value="4154">East Tennessee State University</option>
+            <option value="1371">Emory University</option>
+            <option value="5450">Florida International University</option>
+            <option value="7823">Florida State University</option>
+            <option value="7286">Fred Hutchinson Cancer Research Center</option>
+            <option value="8367">George Washington University</option>
+            <option value="8368">Georgetown University</option>
+            <option value="12231">Georgetown University Medical Center</option>
+            <option value="1372">Georgia Institute of Technology</option>
+            <option value="1373">Georgia State University</option>
+            <option value="1812">Harvard University</option>
+            <option value="1811">Harvard Medical School</option>
+            <option value="8369">Howard University</option>
+            <option value="1771">Indiana University Bloomington</option>
+            <option value="1177">Iowa State University</option>
+            <option value="1466">Johns Hopkins University</option>
+            <option value="1298">Marymount University</option>
+            <option value="2167">Massachusetts Institute of Technology</option>
+            <option value="3078">Michigan State University</option>
+            <option value="5547">Mississippi State University</option>
+            <option value="33052">Montana State University Bozeman</option>
+            <option value="5894">New York University</option>
+            <option value="6798">North Carolina State University</option>
+            <option value="1848">Northeastern University</option>
+            <option value="3270">Northwestern University</option>
+            <option value="2647">Ohio State University</option>
+            <option value="7618">Oklahoma State University Stillwater</option>
+            <option value="6042">Old Dominion University</option>
+            <option value="2694">Oregon State University</option>
+            <option value="8082">Pennsylvania State University</option>
+            <option value="6740">Princeton University</option>
+            <option value="311308">Purdue University</option>
+            <option value="6856">RTI International</option>
+            <option value="242612">Rutgers The State University of New Jersey</option>
+            <option value="2765">Southern Methodist University</option>
+            <option value="6429">Stanford University</option>
+            <option value="14791">SUNY College at Buffalo</option>
+            <option value="6558">Temple University</option>
+            <option value="2655">Texas A&M University System</option>
+            <option value="3402">Texas Christian University</option>
+            <option value="6177">Texas Tech University</option>
+            <option value="1810">Tufts University</option>
+            <option value="5783">Tulane University</option>
+            <option value="8063">University of Alabama</option>
+            <option value="9968">University of Alabama at Birmingham</option>
+            <option value="8041">University of Arizona</option>
+            <option value="8788">University of California Irvine</option>
+            <option value="8783">University of California Los Angeles</option>
+            <option value="8784">University of California San Diego</option>
+            <option value="8785">University of California San Francisco</option>
+            <option value="8786">University of California Santa Barbara</option>
+            <option value="2514">University of Cincinnati</option>
+            <option value="1877">University of Colorado Boulder</option>
+            <option value="7712">University of Connecticut</option>
+            <option value="5972">University of Delaware</option>
+            <option value="2927">University of Denver</option>
+            <option value="8315">University of the District of Columbia</option>
+            <option value="3463">University of Florida</option>
+            <option value="1355">University of Georgia</option>
+            <option value="14681">University of Illinois at Chicago</option>
+            <option value="14589">University of Illinois at Urbana-Champaign</option>
+            <option value="4083">University of Iowa</option>
+            <option value="4202">University of Kansas</option>
+            <option value="12265">University of Maryland Baltimore</option>
+            <option value="12264">University of Maryland School of Medicine</option>
+            <option value="14707">University of Massachusetts Amherst</option>
+            <option value="1259">University of Michigan</option>
+            <option value="5635">University of Minnesota Twin Cities</option>
+            <option value="14716">University of Missouri Columbia</option>
+            <option value="14719">University of Nebraska-Lincoln</option>
+            <option value="14722">University of Nevada Las Vegas</option>
+            <option value="3067">University of New Hampshire</option>
+            <option value="2331">University of North Carolina at Chapel Hill</option>
+            <option value="3404">University of North Texas</option>
+            <option value="6111">University of Notre Dame</option>
+            <option value="6187">University of Oklahoma</option>
+            <option value="3265">University of Oregon</option>
+            <option value="6572">University of Pennsylvania</option>
+            <option value="6614">University of Pittsburgh</option>
+            <option value="4260">University of Rhode Island</option>
+            <option value="6927">University of Rochester</option>
+            <option value="5116">University of Southern California</option>
+            <option value="4292">University of Tennessee Knoxville</option>
+            <option value="12329">University of Texas at Arlington</option>
+            <option value="12330">University of Texas at Austin</option>
+            <option value="12335">University of Texas at Dallas</option>
+            <option value="12346">University of Texas at San Antonio</option>
+            <option value="4002">University of Texas MD Anderson Cancer Center</option>
+            <option value="12334">University of Texas Southwestern Medical Center at Dallas</option>
+            <option value="7060">University of Utah</option>
+            <option value="2358">University of Virginia</option>
+            <option value="7284">University of Washington</option>
+            <option value="5228">University of Wisconsin Madison</option>
+            <option value="4416">University of Wyoming</option>
+            <option value="6889">Virginia Commonwealth University</option>
+            <option value="1757">Virginia Polytechnic Institute and State University</option>
+            <option value="6760">Washington State University</option>
+            <option value="7548">Washington University in Saint Louis</option>
+            <option value="5631">West Virginia University</option>
+            <option value="8604">William & Mary</option>
+            <option value="5755">Yale University</option>
+          </select>
+          <input type="submit" class="ghost-button" value="Get ORCiDs">
+        </form>
+        <form action="/" method="get" id="uk-form" style="display: none;">
+          <label for="ringgold">Institution:</label>
           <select name="ringgold">
             <option value="1026">Aberystwyth University</option>
             <option value="2369">Anglia Ruskin University</option>
@@ -191,6 +329,7 @@
             <option value="5072">Wellcome Trust</option>
             <option value="2366">Writtle College</option>
             <option value="41872">York St John University</option>
+          </select>
           <input type="submit" class="ghost-button" value="Get ORCiDs">
         </form>
       </fieldset>
