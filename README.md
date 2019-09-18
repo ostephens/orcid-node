@@ -1,4 +1,4 @@
-This is a Simple nodejs app for searching for ORCiDs by Ringgold ID for UK HE institutions. The app works as follows:
+This is a Simple nodejs app for searching for ORCiDs by Ringgold ID for US and UK HE institutions. The app works as follows:
 
 * Given an institution's Ringgold ID, search ORCID via the public API with the query "ringgold-org-id:<ringgold id>"
 * Retrieve all the ORCID IDs found (paging through the results 200 at a time)
