@@ -338,13 +338,15 @@
     <% if(count !== null){ %>
       <p>Total ORCiDs Found: <%= count %></p>
     <% } %>
-  </div>
+    </div>
   <table id="orcids">
     <thead>
+      <% if(count !== null){ %>
       <tr>
         <th>ORCID ID</th><th>Last updated</th><th>Name</th><th>Education</th>
         <th>Employment</th><th>IDs</th><th>Emails</th><th>Work count</th>
       </tr>
+      <% } %>
     </thead>
     <tbody>
      <% orcids.forEach( function( orcid ) { %>
@@ -361,10 +363,12 @@
      <% }) %>
      <tbody>
      <tfoot>
+       <% if(count !== null){ %>
        <tr>
          <th>ORCID ID</th><th>Last updated</th><th>Name</th><th>Education</th>
          <th>Employment</th><th>IDs</th><th>Emails</th><th>Work count</th>
        </tr>
+       <% } %>
      </tfoot>
   <script>
     $(document).ready( function () {
