@@ -1,4 +1,15 @@
-This is a Simple nodejs app for searching for ORCiDs by Ringgold ID for US and UK HE institutions. The app works as follows:
+This is a Simple nodejs app for searching for ORCiDs by Ringgold ID for US and UK HE institutions. 
+
+This application is part of a suite of [experimental tools](https://github.com/adammoore/corda/wiki) to investigate ORCID iD engagement and usage within institutions.
+In its current form **_it has a number of issues and limitations_** – please consider them carefully and use it responsibly:
+<ul>
+<li>The researchers shown as affiliated is unlikely to be a true and accurate reflection of all researchers at your institution. Please see the [Jisc UK ORCID Consortium blog post](https://ukorcidsupport.jisc.ac.uk/2019/06/identifying-your-researchers-challenges-and-opportunities/) for more details.</li>
+<li>To serve some requests, the application can make a very large number of queries on the ORCID registry public API – please do not refresh results frequently (although there is some caching).</li>
+<li>Although the application only accesses and displays information made public by users of the ORCID registry, it may expose personal information that they had not expected to be used in such a manner.</li>
+</ul>
+This application was developed under activities funded by [Jisc](https://www.jisc.ac.uk/).
+
+The app works as follows:
 
 * Given an institution's Ringgold ID, search ORCID via the public API with the query "ringgold-org-id:<ringgold id>"
 * Retrieve all the ORCID IDs found (paging through the results 200 at a time)
