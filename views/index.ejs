@@ -6,8 +6,8 @@
     <link rel="stylesheet" type="text/css" href="/css/style.css">
     <link href='https://fonts.googleapis.com/css?family=Open+Sans:300' rel='stylesheet' type='text/css'>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.19/css/jquery.dataTables.css">
-    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.21/css/jquery.dataTables.css">
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.21/js/jquery.dataTables.js"></script>
     <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/buttons/1.5.6/js/dataTables.buttons.min.js"></script>
     <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/buttons/1.5.6/js/buttons.flash.min.js"></script>
     <script type="text/javascript" charset="utf8" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
@@ -23,6 +23,7 @@
       In its current form <strong><em>it has a number of issues and limitations</em></strong> – please consider them carefully and use it responsibly:
       <ul>
       <li>The researchers shown as affiliated is unlikely to be a true and accurate reflection of all researchers at your institution. Please see the <a href="https://ukorcidsupport.jisc.ac.uk/2019/06/identifying-your-researchers-challenges-and-opportunities/">Jisc UK ORCID Consortium blog post</a> for more details.</li>
+      <li>The ORCID public API only supports retrieval of the first 11000 results, so if you have more than 11000 users affiliated to your institution the application will not retrieve them all.</li>
       <li>To serve some requests, the application can make a very large number of queries on the ORCID registry public API – please do not refresh results frequently (although there is some caching).</li>
       <li>Although the application only accesses and displays information made public by users of the ORCID registry, it may expose personal information that they had not expected to be used in such a manner.</li>
       </ul>
@@ -406,49 +407,54 @@
                 }
               }
               $(c).parent().find('td.name').html(name);
-              msg["activities-summary"]["employments"]["employment-summary"].forEach(function(emp,idx,array){
-                if (idx === array.length - 1){ 
-                  partitionCharacter = "";
-                } else {
-                  partitionCharacter = pc;
-                }
-                var org = emp["organization"]["name"] || "No organization name";
-                var role = emp["role-title"] || "No job title";
-                var startYear = "*";
-                if (emp["start-date"] != null) {
-                  startYear = emp["start-date"]["year"]["value"] || "*";
-                }
-                var endYear = "*";
-                if (emp["end-date"] != null) {
-                  if(emp["end-date"]["year"] != null) {
-                    endYear = emp["end-date"]["year"]["value"] || "*";
+              msg["activities-summary"]["employments"]["affiliation-group"].forEach(function(ag,idx,array){
+                ag["summaries"].forEach(function(emp,idx,array){
+                  if (idx === array.length - 1){ 
+                    partitionCharacter = "";
+                  } else {
+                    partitionCharacter = pc;
                   }
-                }
-                $(c).parent().find('td.employment').append(" <div>"+
-                org + ": " + role + " " +
-                startYear+" -> "+endYear+partitionCharacter+"</div>");
+                  var org = emp["employment-summary"]["organization"]["name"] || "No organization name";
+                  var role = emp["employment-summary"]["role-title"] || "No job title";
+                  var startYear = "*";
+                  if (emp["employment-summary"]["start-date"] != null) {
+                    startYear = emp["employment-summary"]["start-date"]["year"]["value"] || "*";
+                  }
+                  var endYear = "*";
+                  if (emp["employment-summary"]["end-date"] != null) {
+                    if(emp["employment-summary"]["end-date"]["year"] != null) {
+                      endYear = emp["employment-summary"]["end-date"]["year"]["value"] || "*";
+                    }
+                  }
+                  $(c).parent().find('td.employment').append(" <div>"+
+                  org + ": " + role + " " +
+                  startYear+" -> "+endYear+partitionCharacter+"</div>");
+                });
               });
-              msg["activities-summary"]["educations"]["education-summary"].forEach(function(edu,idx,array){
-                if (idx === array.length - 1){ 
-                  partitionCharacter = "";
-                } else {
-                  partitionCharacter = pc;
-                }
-                var org = edu["organization"]["name"] || "No organization name";
-                var role = edu["role-title"] || "No course of study";
-                var startYear = "*";
-                if (edu["start-date"] != null) {
-                  startYear = edu["start-date"]["year"]["value"] || "*";
-                }
-                var endYear = "*";
-                if (edu["end-date"] != null) {
-                  if(edu["end-date"]["year"] != null) {
-                    endYear = edu["end-date"]["year"]["value"] || "*";
+              
+              msg["activities-summary"]["educations"]["affiliation-group"].forEach(function(ag,idx,array){
+                ag["summaries"].forEach(function(edu,idx,array){
+                  if (idx === array.length - 1){ 
+                    partitionCharacter = "";
+                  } else {
+                    partitionCharacter = pc;
                   }
-                }
-                $(c).parent().find('td.education').append(" <div>"+
-                org + ": " + role + " " +
-                startYear+" -> "+endYear+partitionCharacter+"</div>");
+                  var org = edu["education-summary"]["organization"]["name"] || "No organization name";
+                  var role = edu["education-summary"]["role-title"] || "No course of study";
+                  var startYear = "*";
+                  if (edu["education-summary"]["start-date"] != null) {
+                    startYear = edu["education-summary"]["start-date"]["year"]["value"] || "*";
+                  }
+                  var endYear = "*";
+                  if (edu["education-summary"]["end-date"] != null) {
+                    if(edu["education-summary"]["end-date"]["year"] != null) {
+                      endYear = edu["education-summary"]["end-date"]["year"]["value"] || "*";
+                    }
+                  }
+                  $(c).parent().find('td.education').append(" <div>"+
+                  org + ": " + role + " " +
+                  startYear+" -> "+endYear+partitionCharacter+"</div>");
+                  });
                 });
                 if(msg["person"]["emails"] != null ) {
                   if(msg["person"]["emails"]["email"] != null){

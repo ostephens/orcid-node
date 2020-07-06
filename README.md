@@ -4,6 +4,7 @@ This application is part of a suite of [experimental tools](https://github.com/a
 In its current form **_it has a number of issues and limitations_** – please consider them carefully and use it responsibly:
 
 * The researchers shown as affiliated is unlikely to be a true and accurate reflection of all researchers at your institution. Please see the [Jisc UK ORCID Consortium blog post](https://ukorcidsupport.jisc.ac.uk/2019/06/identifying-your-researchers-challenges-and-opportunities/) for more details.
+* The ORCID public API only supports retrieval of the first 11000 results, so if you have more than 11000 users affiliated to your institution the application will not retrieve them all
 * To serve some requests, the application can make a very large number of queries on the ORCID registry public API – please do not refresh results frequently (although there is some caching).
 * Although the application only accesses and displays information made public by users of the ORCID registry, it may expose personal information that they had not expected to be used in such a manner.
 
