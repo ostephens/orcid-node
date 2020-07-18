@@ -5,7 +5,9 @@ const apicache = require('apicache');
 const cache = apicache.middleware
 const app = express();
 const bodyParser = require('body-parser');
-var lastRec = 0;
+var lastRec = 0,
+    queryField = "",
+    queryValue = "";
 
 app.use(express.static('public'));
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -13,6 +15,13 @@ app.set('view engine', 'ejs');
 
 app.get('/', cache('2 hours'), function (req, res) {
   if (typeof req.query.ringgold !== "undefined") {
+    queryField = "ringgold-org-id"
+    queryValue = req.query.ringgold
+  } else if (typeof req.query.grid !== "undefined") {
+    queryField = "grid-org-id"
+    queryValue = req.query.grid
+  }
+  if (queryField.length > 0 && queryValue.length > 0) {
     r = 999
     //the public API limits the "start" parameter to 10000
     //by starting with 999 we get the maximum number of responses (11000)
@@ -21,8 +30,9 @@ app.get('/', cache('2 hours'), function (req, res) {
     // q = query
     // start = first record to return (defaults to 1)
     // rows = number of records to return (defaults to 100, max 1000)
-    var u = 'https://pub.orcid.org/v3.0/search/?q=ringgold-org-id:'+
-             req.query.ringgold +
+    var u = 'https://pub.orcid.org/v3.0/search/?q='+
+             queryField +':' +
+             queryValue +
              '&rows='+r;
     //to do local testing uncomment the next line
     //var u = "http://localhost:4000/orcid-search-response"
@@ -53,8 +63,9 @@ app.get('/', cache('2 hours'), function (req, res) {
         }
         if(n > pageSize){          
           for(i = 1; i-1 < Math.floor(n/pageSize); i++) {
-            options.url = 'https://pub.orcid.org/v3.0/search/?q=ringgold-org-id:'+
-                     req.query.ringgold +
+            options.url = 'https://pub.orcid.org/v3.0/search/?q='+
+                     queryField+':'
+                     queryValue +
                      '&start='+(lastRec+1)+
                      '&rows='+pageSize;
             console.log("Attempting to fetch: "+options.url);
