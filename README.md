@@ -12,7 +12,16 @@ This application was developed under activities funded by [Jisc](https://www.jis
 
 The app works as follows:
 
-* Given an institution's Ringgold ID, search ORCID via the public API with the query "ringgold-org-id:<ringgold id>"
+* Given one or more of:
+  * A pipe separated list of Ringgold IDs (URL parameter = ringgold)
+  * A pipe separated list of GRID IDs (URL parameter = grid)
+  * A pipe separated list of email domains (URL parameter = emaildomain)
+  * A pipe separated list of organisation names (URL parameter = orgname)
+* Search ORCID via the public API with the appropriate query parameters joined with "OR", such as:
+  * "ringgold-org-id:<ringgold id>"
+  * "grid-org-id:<grid id>"
+  * "email:\*@<email domain>"
+  * "affiliation-org-name:%22<organisation name>%22"
 * Retrieve all the ORCID IDs found (paging through the results 200 at a time)
 * Display the list of the retrieved ORCIDs in the browser
 * Within the browser, progressively enhance the data by retrieving the full ORCID profile for each ORCID ID in the page
