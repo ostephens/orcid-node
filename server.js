@@ -13,16 +13,28 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.set('view engine', 'ejs');
 
 app.get('/', cache('2 hours'), function (req, res) {
-  query = "";
+  queryparts = [];
   if (typeof req.query.ringgold !== "undefined") {
-    query = "ringgold-org-id:" + req.query.ringgold
+    req.query.ringgold.split("|").forEach(function(q) {
+      queryparts.push("ringgold-org-id:" + q)
+    });
   }
   if (typeof req.query.grid !== "undefined") {
-    if (query.length > 0) {
-      query += "%20OR%20"
-    }     
-    query += "grid-org-id:" + req.query.grid
+    req.query.grid.split("|").forEach(function(q) {
+      queryparts.push("grid-org-id:" + q)
+    });
   }
+  if (typeof req.query.emaildomain !== "undefined") {
+    req.query.emaildomain.split("|").forEach(function(q) {
+      queryparts.push("email:*@" + q)
+    });
+  }
+  if (typeof req.query.orgname !== "undefined") {
+    req.query.orgname.split("|").forEach(function(q) {
+      queryparts.push("affiliation-org-name:%22" + q + "%22")
+    });
+  }
+  query = queryparts.join("%20OR%20")
   if (query.length > 0) {
     r = 999
     //the public API limits the "start" parameter to 10000
