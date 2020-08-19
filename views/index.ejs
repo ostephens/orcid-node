@@ -19,15 +19,27 @@
   </head>
   <body onload="selectRegion()" >
     <div class="header">
-      This application is part of a suite of <a href="https://github.com/adammoore/corda/wiki">experimental tools</a> to investigate ORCID iD engagement and usage within institutions.
-      In its current form <strong><em>it has a number of issues and limitations</em></strong> – please consider them carefully and use it responsibly:
+      <p>This application is part of a suite of <a href="https://github.com/adammoore/corda/wiki">experimental tools</a> to investigate ORCID iD engagement and usage within institutions.
+      In its current form <strong><em>it has a number of issues and limitations</em></strong> – please consider them carefully and use it responsibly:</p>
       <ul>
-      <li>The researchers shown as affiliated is unlikely to be a true and accurate reflection of all researchers at your institution. Please see the <a href="https://ukorcidsupport.jisc.ac.uk/2019/06/identifying-your-researchers-challenges-and-opportunities/">Jisc UK ORCID Consortium blog post</a> for more details.</li>
-      <li>The ORCID public API only supports retrieval of the first 11000 results, so if you have more than 11000 users affiliated to your institution the application will not retrieve them all.</li>
-      <li>To serve some requests, the application can make a very large number of queries on the ORCID registry public API – please do not refresh results frequently (although there is some caching).</li>
-      <li>Although the application only accesses and displays information made public by users of the ORCID registry, it may expose personal information that they had not expected to be used in such a manner.</li>
+        <li>The researchers shown as affiliated is unlikely to be a true and accurate reflection of all researchers at your institution. Please see the <a href="https://ukorcidsupport.jisc.ac.uk/2019/06/identifying-your-researchers-challenges-and-opportunities/">Jisc UK ORCID Consortium blog post</a> for more details.</li>
+        <li>The ORCID public API only supports retrieval of the first 11000 results, so if you have more than 11000 users affiliated to your institution the application will not retrieve them all.</li>
+        <li>To serve some requests, the application can make a very large number of queries on the ORCID registry public API – please do not refresh results frequently (although there is some caching).</li>
+        <li>Although the application only accesses and displays information made public by users of the ORCID registry, it may expose personal information that they had not expected to be used in such a manner.</li>
       </ul>
-      This application was developed under activities funded by <a href="https://www.jisc.ac.uk/">Jisc</a>.
+      <p>You can use the dropdowns below to do a query for the main Ringgold IDs for a limited list of institutions in the USA and the UK. However you can add paramaters to the URL to make any supported queries. The parameters supported are:</p>
+      <ul>
+        <li>ringgold</li>
+        <li>grid</li>
+        <li>emaildomain</li>
+        <li>orgname</li>
+      </ul>
+      <p>For each parameter you can provide a pipe separated list of IDs, names or domains, which will be combined into an ORCID search combined with a boolean OR.
+      So for example adding the following parameter to the end of the application URL will search for one Ringgold ID, one GRID ID and one email domain and two organisation names for Royal Holloway, Univerity of London:
+      <div><code>?ringgold=3162&grid=grid.4970.a&emaildomain=rhul.ac.uk&orgname=Royal%20Holloway%2C%20University%20of%20London|RHUL</code><div>
+      </p>
+      
+      <p>This application was developed under activities funded by <a href="https://www.jisc.ac.uk/">Jisc</a>.</p>
     </div>
     <div class="container">
       <fieldset>
