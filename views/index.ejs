@@ -430,7 +430,9 @@
                   var role = emp["employment-summary"]["role-title"] || "No job title";
                   var startYear = "*";
                   if (emp["employment-summary"]["start-date"] != null) {
-                    startYear = emp["employment-summary"]["start-date"]["year"]["value"] || "*";
+                    if(emp["employment-summary"]["start-date"]["year"] != null) {
+                      startYear = emp["employment-summary"]["start-date"]["year"]["value"] || "*";
+                    }
                   }
                   var endYear = "*";
                   if (emp["employment-summary"]["end-date"] != null) {
@@ -455,7 +457,9 @@
                   var role = edu["education-summary"]["role-title"] || "No course of study";
                   var startYear = "*";
                   if (edu["education-summary"]["start-date"] != null) {
-                    startYear = edu["education-summary"]["start-date"]["year"]["value"] || "*";
+                    if(edu["education-summary"]["start-date"]["year"] != null) {
+                      startYear = edu["education-summary"]["start-date"]["year"]["value"] || "*";
+                    }
                   }
                   var endYear = "*";
                   if (edu["education-summary"]["end-date"] != null) {
