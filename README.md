@@ -1,4 +1,4 @@
-This is a Simple nodejs app for searching for ORCiDs by Ringgold ID for US and UK HE institutions. 
+This is a Simple nodejs app for searching for ORCiDs that are affiliated with a specific organisation or linked to a specific email domain.
 
 This application is part of a suite of [experimental tools](https://github.com/adammoore/corda/wiki) to investigate ORCID iD engagement and usage within institutions.
 In its current form **_it has a number of issues and limitations_** – please consider them carefully and use it responsibly:
