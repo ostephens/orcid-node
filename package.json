@@ -15,7 +15,6 @@
     "express": "^4.16.4",
     "express-paginate": "^1.0.0",
     "express-pagination": "0.0.5",
-    "node-fetch": "^2.6.1",
-    "request": "^2.88.0"
+    "node-fetch": "^2.6.1"
   }
 }

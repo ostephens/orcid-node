@@ -1,4 +1,3 @@
-const request = require('request');
 const express = require('express');
 const fetch = require('node-fetch');
 const apicache = require('apicache');
@@ -36,7 +35,7 @@ app.get('/', cache('2 hours'), function (req, res) {
   }
   query = queryparts.join("%20OR%20")
   if (query.length > 0) {
-    r = 999
+    r = 0
     //the public API limits the "start" parameter to 10000
     //by starting with 999 we get the maximum number of responses (11000)
     //
@@ -56,50 +55,59 @@ app.get('/', cache('2 hours'), function (req, res) {
       'Accept': 'application/vnd.orcid+json'
       }
     };
-    lastRec = 999;
+    lastRec = 0;
     var n = 0;
     
     //set default variables
    var orcidsList = [];
-   
-    async function c() {
-      
-    }
-   
-    async function callback(error, response, body) {
-      if (!error && response.statusCode == 200) {
-        var info = JSON.parse(body);
-        pageSize = 1000
-        n = info["num-found"];
-        console.log("Query found " + n + " ORCiD IDs");
-        for (var k in info["result"]) {
-          orcidsList.push(info["result"][k]["orcid-identifier"]);
+   var orcidsListFetches = [];
+  
+  fetch(options.url, {headers: options.headers})
+    .then(response => {
+      return response.json();
+    })
+    .then(info => {
+      pageSize = 1000
+      n = info["num-found"];
+      console.log("Query found " + n + " ORCiD IDs");
+      numberPages = Math.ceil(n/pageSize);
+      console.log("With a page size of ", pageSize, " that is ", numberPages, " pages.")
+      for(i = 1; i-1 < numberPages; i++) {
+        if(i===1) {
+          ps = pageSize-1;
+        } else {
+          ps = pageSize;
         }
-        if(n > pageSize){          
-          for(i = 1; i-1 < Math.floor(n/pageSize); i++) {
-            options.url = 'https://pub.orcid.org/v3.0/search/?q='+
-                     query +
-                     '&start='+(lastRec+1)+
-                     '&rows='+pageSize;
-            console.log("Attempting to fetch: "+options.url);
-            console.log("Before fetch we have: "+orcidsList.length+" orcIDs listed");
-             let response = await fetch(options.url, {
-               headers: options.headers
-             })
-             let data = await response.json()
+        url = 'https://pub.orcid.org/v3.0/search/?q='+
+                 query +
+                 '&start='+lastRec+
+                 '&rows='+ps;
+        //If you want to see which URLs are being fetched, uncomment the next line
+        console.log(url);
+        orcidsListFetches.push(
+          fetch(url, {headers: options.headers})
+           .then(response => {
+             return response.json();
+           })
+           .then(data => {
              for (var k in data["result"]) {
                orcidsList.push(data["result"][k]["orcid-identifier"]);
-               //console.log(data["result"][k]["orcid-identifier"]);
              }
-            console.log("After fetch we have: "+orcidsList.length+" orcIDs listed");
-            lastRec = lastRec+pageSize;
-          }
-        }
-        console.log(orcidsList.length);
-        res.render('index', {count: n, orcids: orcidsList, itemCount: n, error: null});
+           })
+           .catch((error) => {
+             console.error('Error:', error);
+           })
+         );
+         lastRec = lastRec+ps;
       }
-    }
-    request(options, callback);
+      Promise.all(orcidsListFetches).then(function () {
+        console.log("Length of orcidsList: ",orcidsList.length);
+        res.render('index', {count: n, orcids: orcidsList, itemCount: n, error: null});
+      });
+    })
+    .catch((error) => {
+      console.error('Error:', error);
+    });
   } else {
     res.render("index", {count: null, orcids: [], itemCount: 0, error: null});
   }
@@ -126,13 +134,16 @@ app.get('/orcid/:orcid', cache('1 day'), function (req, res) {
       'Accept': 'application/vnd.orcid+json'
       }
     };
-    function callback(error, response, body) {
-      if (!error && response.statusCode == 200) {
-        orcidJson = JSON.parse(body);
+    fetch(options.url, {headers: options.headers})
+      .then(response => {
+        return response.json();
+      })
+      .then(orcidJson => {
         res.send(orcidJson);
-      }
-    }
-    request(options, callback);
+      })
+      .catch((error) => {
+        console.error('Error:', error);
+      });
   } else {
     res.send({error: 'message'})
   }
