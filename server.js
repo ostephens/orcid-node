@@ -30,7 +30,7 @@ app.get('/', cache('2 hours'), function (req, res) {
   }
   if (typeof req.query.orgname !== "undefined") {
     req.query.orgname.split("|").forEach(function(q) {
-      queryparts.push("affiliation-org-name:%22" + q + "%22")
+      queryparts.push("affiliation-org-name:%22" + encodeURI(q) + "%22")
     });
   }
   query = queryparts.join("%20OR%20")
@@ -139,7 +139,97 @@ app.get('/orcid/:orcid', cache('1 day'), function (req, res) {
         return response.json();
       })
       .then(orcidJson => {
-        res.send(orcidJson);
+        response = {}
+        // LAST UPDATED
+        lastUpdated = getNested(orcidJson, "history", "last-modified-date", "value");
+        if(typeof lastUpdated != undefined || lastUpdated != null) {
+          var ud = new Date(lastUpdated).toISOString();
+          response.lastUpdated = ud.substring(0,10);
+        } else {
+          response.lastUpdated = "No last updated date";
+        }
+        // NAME
+        givenName = getNested(orcidJson, "person","name","given-names","value");
+        familyName = getNested(orcidJson, "person","name","family-name","value");
+        name = [givenName, familyName].join(' ');
+        if(name.trim().length === 0) {
+          name = "Anonymous"
+        }
+        response.name = name
+        // EMPLOYMENTS
+        employments = []
+        employmentAffiliationGroups = getNested(orcidJson, "activities-summary","employments","affiliation-group")
+        employmentAffiliationGroups.forEach(function(ag){
+          ag["summaries"].forEach(function(emp){
+            var org = getNested(emp, "employment-summary","organization","name");
+            if(typeof org === undefined || org === null) {
+              org =  "No organization name";
+            }
+            var role = getNested(emp, "employment-summary", "role-title");
+            if(typeof role === undefined || role === null) {
+              role = "No job title";
+            } 
+            var startYear = getNested(emp, "employment-summary", "start-date", "year", "value")
+            if(typeof startYear === undefined || startYear === null) {
+              startYear = "*";
+            }
+            var endYear = getNested(emp, "employment-summary", "end-date", "year", "value")
+            if(typeof endYear === undefined || endYear === null) {
+              endYear = "*";
+            }
+            employments.push(org + ": " + role + " " +
+            startYear+" -> "+endYear)
+          });
+        });
+        response.employments = employments;
+        // EDUCATIONS
+        educations = []
+        educationAffiliationGroups = getNested(orcidJson, "activities-summary","educations","affiliation-group")
+        educationAffiliationGroups.forEach(function(ag){
+          ag["summaries"].forEach(function(emp){
+            var org = getNested(emp, "education-summary","organization","name");
+            if(typeof org === undefined || org === null) {
+              org =  "No organization name";
+            }
+            var role = getNested(emp, "education-summary", "role-title");
+            if(typeof role === undefined || role === null) {
+              role = "No course of study";
+            } 
+            var startYear = getNested(emp, "education-summary", "start-date", "year", "value")
+            if(typeof startYear === undefined || startYear === null) {
+              startYear = "*";
+            }
+            var endYear = getNested(emp, "education-summary", "end-date", "year", "value")
+            if(typeof endYear === undefined || endYear === null) {
+              endYear = "*";
+            }
+            educations.push(org + ": " + role + " " +
+            startYear+" -> "+endYear)
+          });
+        });
+        response.educations = educations
+        // EMAILS
+        emails = []
+        emailList = getNested(orcidJson, "person", "emails", "email")
+        if(typeof emailList != undefined && emailList != null) {
+          emailList.forEach(function(em){
+            emails.push(getNested(em, "email"));
+          });
+        }
+        response.emails = emails
+        // IDS
+        ids = []
+        idList = getNested(orcidJson, "person", "external-identifiers", "external-identifier")
+        if(typeof idList != undefined && idList != null) {
+          idList.forEach(function(id){
+            ids.push(getNested(id, "external-id-type") + ": "+getNested(id, "external-id-value"));
+          });
+        }
+        response.ids = ids
+        // WORK COUNT
+        workCount = getNested(orcidJson, "activities-summary", "works", "group", "length");
+        response.workCount = workCount;
+        res.send(response);
       })
       .catch((error) => {
         console.error('Error:', error);
@@ -152,3 +242,10 @@ app.get('/orcid/:orcid', cache('1 day'), function (req, res) {
 app.listen(process.env.PORT || 4000, function () {
   console.log('Example app listening on port ' + (process.env.PORT || 4000));
 })
+
+// Handy function to check all levels of a path in some json from
+// https://stackoverflow.com/questions/2631001/test-for-existence-of-nested-javascript-object-key
+// Returns undefined if the path doesn't exist in the JSON
+function getNested(obj, ...args) {
+  return args.reduce((obj, path) => obj && obj[path], obj)
+}

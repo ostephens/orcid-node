@@ -404,110 +404,15 @@
             }).
             done(function (msg) {
               var pc = ";"; //character used to partition multi-value fields
-              if(msg["history"]["last-modified-date"] != null){
-                  var et = msg["history"]["last-modified-date"]["value"];
-                  var ud = new Date(et).toISOString();
-                  $(c).parent().find('td.updated').html(ud.substring(0,10));
-              }
-              var name = "Anonymous";
-              if(msg["person"]["name"] != null){
-                if (msg["person"]["name"]["given-names"] != null) {
-                  name = msg["person"]["name"]["given-names"]["value"];
-                }
-                if (msg["person"]["name"]["family-name"] != null) {
-                  name += " "+msg["person"]["name"]["family-name"]["value"];
-                }
-              }
-              $(c).parent().find('td.name').html(name);
-              msg["activities-summary"]["employments"]["affiliation-group"].forEach(function(ag,idx,array){
-                ag["summaries"].forEach(function(emp,idx,array){
-                  if (idx === array.length - 1){ 
-                    partitionCharacter = "";
-                  } else {
-                    partitionCharacter = pc;
-                  }
-                  var org = emp["employment-summary"]["organization"]["name"] || "No organization name";
-                  var role = emp["employment-summary"]["role-title"] || "No job title";
-                  var startYear = "*";
-                  if (emp["employment-summary"]["start-date"] != null) {
-                    if(emp["employment-summary"]["start-date"]["year"] != null) {
-                      startYear = emp["employment-summary"]["start-date"]["year"]["value"] || "*";
-                    }
-                  }
-                  var endYear = "*";
-                  if (emp["employment-summary"]["end-date"] != null) {
-                    if(emp["employment-summary"]["end-date"]["year"] != null) {
-                      endYear = emp["employment-summary"]["end-date"]["year"]["value"] || "*";
-                    }
-                  }
-                  $(c).parent().find('td.employment').append(" <div>"+
-                  org + ": " + role + " " +
-                  startYear+" -> "+endYear+partitionCharacter+"</div>");
-                });
-              });
-              
-              msg["activities-summary"]["educations"]["affiliation-group"].forEach(function(ag,idx,array){
-                ag["summaries"].forEach(function(edu,idx,array){
-                  if (idx === array.length - 1){ 
-                    partitionCharacter = "";
-                  } else {
-                    partitionCharacter = pc;
-                  }
-                  var org = edu["education-summary"]["organization"]["name"] || "No organization name";
-                  var role = edu["education-summary"]["role-title"] || "No course of study";
-                  var startYear = "*";
-                  if (edu["education-summary"]["start-date"] != null) {
-                    if(edu["education-summary"]["start-date"]["year"] != null) {
-                      startYear = edu["education-summary"]["start-date"]["year"]["value"] || "*";
-                    }
-                  }
-                  var endYear = "*";
-                  if (edu["education-summary"]["end-date"] != null) {
-                    if(edu["education-summary"]["end-date"]["year"] != null) {
-                      endYear = edu["education-summary"]["end-date"]["year"]["value"] || "*";
-                    }
-                  }
-                  $(c).parent().find('td.education').append(" <div>"+
-                  org + ": " + role + " " +
-                  startYear+" -> "+endYear+partitionCharacter+"</div>");
-                  });
-                });
-                if(msg["person"]["emails"] != null ) {
-                  if(msg["person"]["emails"]["email"] != null){
-                    msg["person"]["emails"]["email"].forEach(function(email,idx,array) {
-                      if (idx === array.length - 1){ 
-                        partitionCharacter = "";
-                      } else {
-                        partitionCharacter = pc;
-                      }
-                      var em = email["email"]
-                      $(c).parent().find('td.email').append(" <div>"+
-                      em+partitionCharacter+"</div>");
-                    });
-                  }
-                }
-                if(msg["person"]["external-identifiers"] != null ) {
-                  if(msg["person"]["external-identifiers"]["external-identifier"] != null){
-                    msg["person"]["external-identifiers"]["external-identifier"].forEach(function(id,idx,array) {
-                      if (idx === array.length - 1){ 
-                        partitionCharacter = "";
-                      } else {
-                        partitionCharacter = pc;
-                      }
-                      var idtype = id["external-id-type"];
-                      var idvalue = id["external-id-value"];
-                      $(c).parent().find('td.ids').append(" <div>"+
-                      idtype+": "+idvalue+partitionCharacter+"</div>");
-                    });
-                  }
-                }
-                if(msg["activities-summary"]["works"] != null) {
-                  var wc = msg["activities-summary"]["works"]["group"].length
-                  $(c).parent().find('td.work-count').append(wc);
-                }
+              $(c).parent().find('td.updated').html(msg.lastUpdated);
+              $(c).parent().find('td.name').html(msg.name);
+              $(c).parent().find('td.employment').append(msg.employments.join(pc+"<br />"));
+              $(c).parent().find('td.education').append(msg.educations.join(pc+"<br />"));
+              $(c).parent().find('td.email').append(msg.emails.join(pc+"<br />"));
+              $(c).parent().find('td.ids').append(msg.ids.join(pc+"<br />"));
+              $(c).parent().find('td.work-count').append(msg.workCount);
             });
           });
-
           function setHeader(xhr) {
             xhr.setRequestHeader('Accept', 'application/vnd.orcid+json');
           }
