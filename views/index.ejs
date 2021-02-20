@@ -415,6 +415,8 @@
           });
           function setHeader(xhr) {
             xhr.setRequestHeader('Accept', 'application/vnd.orcid+json');
+            //Uncomment the next line to bypass the cache on requests
+            //xhr.setRequestHeader('x-apicache-bypass', 'true');
           }
         } );
         $( document ).ajaxStop(function() {
