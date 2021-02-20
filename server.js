@@ -157,7 +157,7 @@ app.get('/orcid/:orcid', cache('1 day'), function (req, res) {
         }
         response.name = name
         // EMPLOYMENTS
-        employments = []
+        employments = new Array();
         employmentAffiliationGroups = getNested(orcidJson, "activities-summary","employments","affiliation-group")
         employmentAffiliationGroups.forEach(function(ag){
           ag["summaries"].forEach(function(emp){
@@ -183,7 +183,7 @@ app.get('/orcid/:orcid', cache('1 day'), function (req, res) {
         });
         response.employments = employments;
         // EDUCATIONS
-        educations = []
+        educations = new Array();
         educationAffiliationGroups = getNested(orcidJson, "activities-summary","educations","affiliation-group")
         educationAffiliationGroups.forEach(function(ag){
           ag["summaries"].forEach(function(emp){
@@ -209,7 +209,7 @@ app.get('/orcid/:orcid', cache('1 day'), function (req, res) {
         });
         response.educations = educations
         // EMAILS
-        emails = []
+        emails = new Array();
         emailList = getNested(orcidJson, "person", "emails", "email")
         if(typeof emailList != undefined && emailList != null) {
           emailList.forEach(function(em){
@@ -218,7 +218,7 @@ app.get('/orcid/:orcid', cache('1 day'), function (req, res) {
         }
         response.emails = emails
         // IDS
-        ids = []
+        ids = new Array();
         idList = getNested(orcidJson, "person", "external-identifiers", "external-identifier")
         if(typeof idList != undefined && idList != null) {
           idList.forEach(function(id){
