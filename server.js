@@ -1,6 +1,8 @@
 const express = require('express');
 const fetch = require('node-fetch');
 const apicache = require('apicache');
+const csv = require('csv-parser');
+const Readable = require('stream').Readable;
 const cache = apicache.middleware
 const app = express();
 const bodyParser = require('body-parser');
@@ -36,14 +38,11 @@ app.get('/', cache('2 hours'), function (req, res) {
   query = queryparts.join("%20OR%20")
   if (query.length > 0) {
     r = 0
-    //the public API limits the "start" parameter to 10000
-    //by starting with 999 we get the maximum number of responses (11000)
-    //
     // ORCiD API Search query params:
     // q = query
-    // start = first record to return (defaults to 1)
+    // start = first record to return (defaults to 1, max 10000)
     // rows = number of records to return (defaults to 100, max 1000)
-    var u = 'https://pub.orcid.org/v3.0/search/?q='+
+    var u = 'https://pub.orcid.org/v3.0/expanded-search/?q='+
              query +
              '&rows='+r;
     console.log(u);
@@ -59,6 +58,7 @@ app.get('/', cache('2 hours'), function (req, res) {
     var n = 0;
     
     //set default variables
+   var orcidCSV = '';
    var orcidsList = [];
    var orcidsListFetches = [];
   
@@ -74,25 +74,29 @@ app.get('/', cache('2 hours'), function (req, res) {
       console.log("With a page size of ", pageSize, " that is ", numberPages, " pages.")
       for(i = 1; i-1 < numberPages; i++) {
         if(i===1) {
+          //the public API limits the "start" parameter to 10000
+          //by starting with 999 we get the maximum number of responses (11000)
           ps = pageSize-1;
         } else {
           ps = pageSize;
         }
-        url = 'https://pub.orcid.org/v3.0/search/?q='+
+        url = 'https://pub.orcid.org/v3.0/csv-search/?q='+
                  query +
+                 '&fl=orcid,given-names,family-name,current-institution-affiliation-name,past-institution-affiliation-name,email' +
                  '&start='+lastRec+
                  '&rows='+ps;
         //If you want to see which URLs are being fetched, uncomment the next line
+        options.headers = {
+          'Accept': 'text/csv'
+          }
         console.log(url);
         orcidsListFetches.push(
           fetch(url, {headers: options.headers})
            .then(response => {
-             return response.json();
+             return response.text();
            })
-           .then(data => {
-             for (var k in data["result"]) {
-               orcidsList.push(data["result"][k]["orcid-identifier"]);
-             }
+           .then(body => {
+             orcidCSV = orcidCSV + body
            })
            .catch((error) => {
              console.error('Error:', error);
@@ -101,8 +105,15 @@ app.get('/', cache('2 hours'), function (req, res) {
          lastRec = lastRec+ps;
       }
       Promise.all(orcidsListFetches).then(function () {
-        console.log("Length of orcidsList: ",orcidsList.length);
-        res.render('index', {count: n, orcids: orcidsList, itemCount: n, error: null});
+        Readable.from(orcidCSV)
+         .pipe(csv())
+         .on('data', (row) => {
+             orcidsList.push(row);
+          })
+         .on('end', () => {
+          console.log("Length of orcidsList: ",orcidsList.length);
+          res.render('index', {count: n, orcids: orcidsList, itemCount: n, error: null});
+         })
       });
     })
     .catch((error) => {

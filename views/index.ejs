@@ -366,34 +366,30 @@
     <thead>
       <% if(count !== null){ %>
       <tr>
-        <th>ORCID ID</th><th>Last updated</th><th>Name</th><th>Education</th>
-        <th>Employment</th><th>IDs</th><th>Emails</th><th>Work count</th>
+        <th>ORCID ID</th><th>Name</th><th>Current affiliations</th><th>Past affiliations</th><th>Emails</th>
       </tr>
       <% } %>
     </thead>
     <tbody>
      <% orcids.forEach( function( orcid ) { %>
        <tr class="orcid-info">
-         <td class="orcid" valign="top"><%= orcid.path %></td>
-         <td class="updated" valign="top"></td>
-         <td class="name" valign="top"></td>
-         <td class="education" valign="top"></td>
-         <td class="employment" valign="top"></td>
-         <td class="ids" valign="top"></td>
-         <td class="email" valign="top"></td>
-         <td class="work-count" valign="top"></td>
+         <td class="orcid" valign="top"><%= orcid['orcid'] %></td>
+         <td class="name" valign="top"><%= orcid['given-names'] + " " + orcid['family-name'] %></td>
+         <td class="current-affiliation" valign="top"><%- orcid['current-institution-affiliation-name'].split(",").join(";<br />") %></td>
+         <td class="past-affiliation" valign="top"><%- orcid['past-institution-affiliation-name'].split(",").join(";<br />") %></td>
+         <td class="email" valign="top"><%- orcid['email'].split(",").join(";<br />") %></td>
        </tr>
      <% }) %>
      <tbody>
      <tfoot>
        <% if(count !== null){ %>
        <tr>
-         <th>ORCID ID</th><th>Last updated</th><th>Name</th><th>Education</th>
-         <th>Employment</th><th>IDs</th><th>Emails</th><th>Work count</th>
+         <th>ORCID ID</th><th>Name</th><th>Current affiliations</th><th>Past affiliations</th><th>Emails</th>
        </tr>
        <% } %>
      </tfoot>
   <script>
+    /* 
     $(document).ready( function () {
       $('td.orcid').each(function(i, c) {
           $.ajax({
@@ -419,7 +415,10 @@
             //xhr.setRequestHeader('x-apicache-bypass', 'true');
           }
         } );
+    
         $( document ).ajaxStop(function() {
+      */
+        $(document).ready( function () {
           $('#orcids').DataTable({
             dom: 'Bfrtip',
             buttons: [
