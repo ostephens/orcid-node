@@ -1,0 +1,31 @@
+extends layout
+
+include ./mixins/pagination.pug
+
+block content
+  h2= "Total affiliated ORCIDs found: " + itemCount
+  -var maxPages = Math.min(parseInt(numberOfPages),10000/parseInt(perPage)+1)
+  if itemCount > 10000
+    -const maxItems = 10000+parseInt(perPage)
+    h3= "Displaying first " + maxItems.toString() + " ORCIDs only"
+    h3= "That's " + maxPages.toString() + " pages"
+    if perPage < 1000
+      p Increasing the perPage parameter to 1000 will display the maximum number of items  based on the ORCID public API (11000)
+
+  +pagination(5, maxPages, 5, currentPage, `?${urlQuery}&currentPage=`)
+  table.table.table-striped
+    tr
+      th ORCID
+      th Name
+      th Current affiliations
+      th Past affiliations
+      th Email
+    each orcid, index in orcids
+      tr
+        td= orcid.orcid
+        td= orcid['given-names'] + " " + orcid['family-name']
+        td!= orcid['current-institution-affiliation-name'].split(",").join(";<br />")
+        td!= orcid['past-institution-affiliation-name'].split(",").join(";<br />")
+        td= orcid.email
+        
+  +pagination(5, maxPages, 5, currentPage, `?${urlQuery}&currentPage=`)

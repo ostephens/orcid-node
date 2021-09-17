@@ -7,13 +7,32 @@ const cache = apicache.middleware
 const app = express();
 const bodyParser = require('body-parser');
 var lastRec = 0,
-    query = "";
+    query = "",
+    perPage = 10,
+    currentPage = 1,
+    urlQuery = "";
+    
 
 app.use(express.static('public'));
 app.use(bodyParser.urlencoded({ extended: true }));
-app.set('view engine', 'ejs');
+app.set('view engine', 'pug');
 
 app.get('/', cache('2 hours'), function (req, res) {
+  const paramKeys = []
+  for (const paramKey in req.query) {
+    if (paramKey != "currentPage") {
+      paramKeys.push(`${paramKey}=${req.query[paramKey]}`)
+    }
+    urlQuery = paramKeys.join("&")
+  }
+  if (typeof req.query.currentPage !== "undefined") {
+    currentPage = req.query.currentPage;
+  }
+  if (typeof req.query.perPage !== "undefined") {
+    perPage = req.query.perPage;
+  }
+  rows = perPage;
+  start = rows * (currentPage - 1);
   queryparts = [];
   if (typeof req.query.ringgold !== "undefined") {
     req.query.ringgold.split("|").forEach(function(q) {
@@ -67,43 +86,35 @@ app.get('/', cache('2 hours'), function (req, res) {
       return response.json();
     })
     .then(info => {
-      pageSize = 1000
+      //pageSize = 1000
       n = info["num-found"];
       console.log("Query found " + n + " ORCiD IDs");
-      numberPages = Math.ceil(n/pageSize);
-      console.log("With a page size of ", pageSize, " that is ", numberPages, " pages.")
-      for(i = 1; i-1 < numberPages; i++) {
-        if(i===1) {
-          //the public API limits the "start" parameter to 10000
-          //by starting with 999 we get the maximum number of responses (11000)
-          ps = pageSize-1;
-        } else {
-          ps = pageSize;
+      numberOfPages = Math.ceil(n/rows);
+      console.log("With a page size of ", rows, " that is ", numberOfPages, " pages.")
+
+      url = 'https://pub.orcid.org/v3.0/csv-search/?q='+
+               query +
+               '&fl=orcid,given-names,family-name,current-institution-affiliation-name,past-institution-affiliation-name,email' +
+               '&start='+start+
+               '&rows='+rows;
+      //If you want to see which URLs are being fetched, uncomment the next line
+      options.headers = {
+        'Accept': 'text/csv'
         }
-        url = 'https://pub.orcid.org/v3.0/csv-search/?q='+
-                 query +
-                 '&fl=orcid,given-names,family-name,current-institution-affiliation-name,past-institution-affiliation-name,email' +
-                 '&start='+lastRec+
-                 '&rows='+ps;
-        //If you want to see which URLs are being fetched, uncomment the next line
-        options.headers = {
-          'Accept': 'text/csv'
-          }
-        console.log(url);
-        orcidsListFetches.push(
-          fetch(url, {headers: options.headers})
-           .then(response => {
-             return response.text();
-           })
-           .then(body => {
-             orcidCSV = orcidCSV + body
-           })
-           .catch((error) => {
-             console.error('Error:', error);
-           })
-         );
-         lastRec = lastRec+ps;
-      }
+      console.log(url);
+      orcidsListFetches.push(
+        fetch(url, {headers: options.headers})
+         .then(response => {
+           return response.text();
+         })
+         .then(body => {
+           orcidCSV = orcidCSV + body
+         })
+         .catch((error) => {
+           console.error('Error:', error);
+         })
+       );
+
       Promise.all(orcidsListFetches).then(function () {
         Readable.from(orcidCSV)
          .pipe(csv())
@@ -112,7 +123,15 @@ app.get('/', cache('2 hours'), function (req, res) {
           })
          .on('end', () => {
           console.log("Length of orcidsList: ",orcidsList.length);
-          res.render('index', {count: n, orcids: orcidsList, itemCount: n, error: null});
+          res.render('index', {
+            count: n,
+            orcids: orcidsList,
+            itemCount: n,
+            perPage: perPage,
+      		  currentPage: currentPage,
+            numberOfPages: numberOfPages,
+            urlQuery: urlQuery,
+            error: null});
          })
       });
     })
@@ -120,7 +139,15 @@ app.get('/', cache('2 hours'), function (req, res) {
       console.error('Error:', error);
     });
   } else {
-    res.render("index", {count: null, orcids: [], itemCount: 0, error: null});
+    res.render("index", {
+      count: null, 
+      orcids: [], 
+      itemCount: 0,
+      perPage: null,
+      currentPage: null,
+      numberOfPages: null,
+      req: req,
+      error: null});
   }
 })
 

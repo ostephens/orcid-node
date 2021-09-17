@@ -11,9 +11,10 @@
   "dependencies": {
     "apicache": "^1.4.0",
     "body-parser": "^1.18.3",
+    "csv-parser": "^3.0.0",
     "ejs": "^2.6.1",
     "express": "^4.16.4",
     "node-fetch": "^2.6.1",
-    "csv-parser": "^3.0.0"
+    "pug": "^3.0.2"
   }
 }
