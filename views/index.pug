@@ -26,6 +26,6 @@ block content
         td= orcid['given-names'] + " " + orcid['family-name']
         td!= orcid['current-institution-affiliation-name'].split(",").join(";<br />")
         td!= orcid['past-institution-affiliation-name'].split(",").join(";<br />")
-        td= orcid.email
+        td!= orcid.email.split(",").join(";<br />")
         
   +pagination(5, maxPages, 5, currentPage, `?${urlQuery}&currentPage=`)
