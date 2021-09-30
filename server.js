@@ -10,7 +10,8 @@ var lastRec = 0,
     query = "",
     perPage = 10,
     currentPage = 1,
-    urlQuery = "";
+    urlQuery = "",
+    sortOptions = "orcid%20asc";
     
 
 app.use(express.static('public'));
@@ -96,7 +97,8 @@ app.get('/', cache('2 hours'), function (req, res) {
                query +
                '&fl=orcid,given-names,family-name,current-institution-affiliation-name,past-institution-affiliation-name,email' +
                '&start='+start+
-               '&rows='+rows;
+               '&rows='+rows+
+               '&sort='+sortOptions;
       //If you want to see which URLs are being fetched, uncomment the next line
       options.headers = {
         'Accept': 'text/csv'
