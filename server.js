@@ -2,6 +2,7 @@ const express = require('express');
 const fetch = require('node-fetch');
 const apicache = require('apicache');
 const csv = require('csv-parser');
+const papa = require("papaparse");
 const Readable = require('stream').Readable;
 const cache = apicache.middleware
 const app = express();
@@ -136,6 +137,143 @@ app.get('/', cache('2 hours'), function (req, res) {
       error: null});
   }
 })
+
+app.get('/download', cache('2 hours'), function(req, res) {
+  res.type('text/csv');
+  query = orcidQueryTools.buildOrcidQuery(req)
+  if (query.length > 0) {
+    r = 0
+    // ORCiD API Search query params:
+    // q = query
+    // start = first record to return (defaults to 1, max 10000)
+    // rows = number of records to return (defaults to 100, max 1000)
+    var u = orcidQueryTools.buildOrcidAPIUrl(orcidAPIBase,orcidAPIVersion,orcidAPIType)+
+            '/?q='+ query +
+            '&rows=' + r +
+            '&sort=' + sortOptions;
+    console.log(u);
+    //to do local testing uncomment the next line
+    //var u = "http://localhost:4000/orcid-search-response"
+    var options = {
+      url: u,
+      headers: {
+      'Accept': 'application/vnd.orcid+json'
+      }
+    };
+    lastRec = 0;
+    var n = 0;
+    var orcidsList = [];
+    var orcidJsonPromises = [];
+    var listFullOrcidRecords = [];
+  
+    fetch(options.url, {headers: options.headers})
+    .then(searchResultResponse => {
+      return searchResultResponse.json();
+    })
+    .then(searchResult => {
+      pageSize = 1000
+      n = searchResult["num-found"];
+      console.log("Query found " + n + " ORCiD IDs");
+      numberPages = Math.ceil(n/pageSize);
+      console.log("With a page size of ", pageSize, " that is ", numberPages, " pages.")
+      fetchList = [];
+      for(i = 1; i-1 < numberPages; i++) {
+        url = orcidQueryTools.buildOrcidAPIUrl(orcidAPIBase,orcidAPIVersion,orcidAPIType) +
+              '/?q=' + query +
+              '&start=' + lastRec +
+              '&rows=' + pageSize;
+        //If you want to see which URLs are being fetched, uncomment the next line
+        console.log(url);
+        fetchList.push(
+          fetch(url, {headers: options.headers})
+           .then(response => {
+             return response.json();
+           })
+           .then(orcidRecord => {
+             for (var k in orcidRecord["result"]) {
+               orcidsList.push(orcidRecord["result"][k]["orcid-identifier"]);
+             }
+           })
+           .catch((error) => {
+             console.error('Error:', error);
+           })
+         );
+         lastRec = lastRec+pageSize;
+      }
+      console.log("Number of fetches:" + fetchList.length);
+      return fetchList;
+    })
+    .then(fetchList => {
+      //console.log(fetchList[0])
+      Promise.all(fetchList)
+      .then(function () {
+        for(let i = 0; i < orcidsList.length; i++) {
+          u = orcidsList[i].uri
+          orcidJsonPromises.push(
+            fetch(u, {headers: options.headers})
+             .then(response => {
+               return response.json();
+             })
+             .then(orcidJson => {
+               
+               listFullOrcidRecords.push(orcidJson);
+             })
+             .catch((error) => {
+               console.error('Error:', error);
+             })
+           );
+         }
+         return orcidJsonPromises;
+       })
+       .then(function () {
+         //console.log(orcidJsonPromises);
+         Promise.all(orcidJsonPromises)
+          .then(function () {
+            csvRecords = []
+            listFullOrcidRecords.forEach( orcidRecord => {
+              // orcidId = orcidQueryTools.getOrcidId(orcidJson);
+              // lastUpdated = orcidQueryTools.getLastUpdated(orcidJson);
+              // name = orcidQueryTools.getName(orcidJson);
+              // employments = orcidQueryTools.getEmployments(orcidJson);
+              // educations = orcidQueryTools.getEducations(orcidJson);
+              // emails = orcidQueryTools.getEmails(orcidJson);
+              // ids = orcidQueryTools.getIds(orcidJson);
+              // workCount = orcidQueryTools.getWorkCount(orcidJson);
+              csvRecords.push(
+                {
+                  orcid: orcidQueryTools.getOrcidId(orcidRecord),
+                  lastUpdated: orcidQueryTools.getLastUpdated(orcidRecord),
+                  name: orcidQueryTools.getName(orcidRecord),
+                  educations: orcidQueryTools.getEducations(orcidRecord),
+                  employments: orcidQueryTools.getEmployments(orcidRecord),
+                  ids: orcidQueryTools.getIds(orcidRecord),
+                  emails: orcidQueryTools.getEmails(orcidRecord),
+                  workCount: orcidQueryTools.getWorkCount(orcidRecord)
+                }
+              )
+            })
+            return papa.unparse(csvRecords);
+          }).
+          then (attach => {
+            //response = "";
+            //res.attachment(attach)
+            res.send(attach)
+          })
+          .catch((error) => {
+            console.error('Error:', error);
+          });
+       })
+      .catch((error) => {
+        console.error('Error:', error);
+      });
+    })
+    .catch((error) => {
+      console.error('Error:', error);
+    });
+  } else {
+    console.log("Nothing to download");
+  }
+});
 
 app.get('/orcid-search-response', function(req, res) {
   res.render('orcid-search-response');

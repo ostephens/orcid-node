@@ -11,6 +11,9 @@ block content
     h3= "That's " + maxPages.toString() + " pages"
     if perPage < 1000
       p Increasing the perPage parameter to 1000 will display the maximum number of items  based on the ORCID public API (11000)
+  else 
+    h2
+      a(href=`./download/?${urlQuery}`) Download CSV
 
   +pagination(5, maxPages, 5, currentPage, `?${urlQuery}&currentPage=`)
   table.table.table-striped

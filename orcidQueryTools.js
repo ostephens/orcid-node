@@ -28,6 +28,10 @@ const buildOrcidQuery = function(req) {
   return query
 }
 
+const getOrcidId = function (orcidJson) {
+  return orcidJson['orcid-identifier']['path'];
+}
+
 const getLastUpdated = function (orcidJson) {
   lastUpdated = getNested(orcidJson, "history", "last-modified-date", "value");
   if(typeof lastUpdated != undefined || lastUpdated != null) {
@@ -140,5 +144,5 @@ getNested = function(obj, ...args) {
 }
 
 module.exports ={
-  buildOrcidAPIUrl,buildOrcidQuery,getLastUpdated,getName,getEmployments,getEducations,getEmails,getIds,getWorkCount
+  buildOrcidAPIUrl,buildOrcidQuery,getOrcidId,getLastUpdated,getName,getEmployments,getEducations,getEmails,getIds,getWorkCount
 }
