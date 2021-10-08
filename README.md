@@ -44,7 +44,13 @@ Requires:
 * nodejs
 * request
 * express
-* node-fetch
+* axios
+* papaparse
+* csv-parser
+* apicache
+* body-parser
+* smart-request-balancer
+* pug
 
 To install:
 * Clone or download this repository

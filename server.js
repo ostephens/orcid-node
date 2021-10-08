@@ -1,5 +1,6 @@
 const express = require('express');
 const fetch = require('node-fetch');
+const axios = require('axios').default;
 const apicache = require('apicache');
 const csv = require('csv-parser');
 const papa = require("papaparse");
@@ -7,6 +8,7 @@ const Readable = require('stream').Readable;
 const cache = apicache.middleware
 const app = express();
 const bodyParser = require('body-parser');
+const Queue = require('smart-request-balancer');
 
 const orcidQueryTools = require('./orcidQueryTools.js')
 var orcidAPIBase = 'https://pub.orcid.org',
@@ -19,11 +21,36 @@ var lastRec = 0,
     currentPage = 1,
     urlQuery = "",
     sortOptions = "orcid%20asc";
-    
+
+const remoteAPIQueue = new Queue({
+  rules: {
+    common: {
+      rate: 1,
+      limit: 1,
+      priority: 1
+    },
+    default: {
+      rate: 1,
+      limit: 1,
+    },
+    overall: {
+      rate: 1,
+      limit: 1
+    },
+    retryTime: 5,
+    ignoreOverallOverheat: false
+  }
+});
 
 app.use(express.static('public'));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.set('view engine', 'pug');
+
+const server = app.listen(process.env.PORT || 4000, function () {
+  console.log('Example app listening on port ' + (process.env.PORT || 4000));
+})
+server.keepAliveTimeout = 6000 * 1000;
+server.headersTimeout = 6000 * 1000;
 
 app.get('/', cache('2 hours'), function (req, res) {
   const paramKeys = []
@@ -51,7 +78,6 @@ app.get('/', cache('2 hours'), function (req, res) {
     var u = orcidQueryTools.buildOrcidAPIUrl(orcidAPIBase,orcidAPIVersion,orcidAPIType)+
         '/?q='+ query +
         '&rows='+r;
-    console.log(u);
     //to do local testing uncomment the next line
     //var u = "http://localhost:4000/orcid-search-response"
     var options = {
@@ -64,13 +90,13 @@ app.get('/', cache('2 hours'), function (req, res) {
     var n = 0;
     
     //set default variables
-   var orcidCSV = '';
-   var orcidsList = [];
-   var orcidsListFetches = [];
+    var orcidCSV = '';
+    var orcidsList = [];
+    var orcidsListFetches = [];
   
-  fetch(options.url, {headers: options.headers})
+    queueRequest(remoteAPIQueue,options,query+rows)
     .then(response => {
-      return response.json();
+      return response.data;
     })
     .then(info => {
       //pageSize = 1000
@@ -78,21 +104,20 @@ app.get('/', cache('2 hours'), function (req, res) {
       console.log("Query found " + n + " ORCiD IDs");
       numberOfPages = Math.ceil(n/rows);
       console.log("With a page size of ", rows, " that is ", numberOfPages, " pages.")
-      url = orcidQueryTools.buildOrcidAPIUrl(orcidAPIBase,orcidAPIVersion,'csv-search')+
+      options.url = orcidQueryTools.buildOrcidAPIUrl(orcidAPIBase,orcidAPIVersion,'csv-search')+
                '/?q=' + query +
                '&fl=orcid,given-names,family-name,current-institution-affiliation-name,past-institution-affiliation-name,email' +
                '&start=' + start +
                '&rows=' + rows +
                '&sort=' + sortOptions;
-      //If you want to see which URLs are being fetched, uncomment the next line
+
       options.headers = {
         'Accept': 'text/csv'
         }
-      console.log(url);
       orcidsListFetches.push(
-        fetch(url, {headers: options.headers})
+        queueRequest(remoteAPIQueue,options,query+start+rows+sortOptions)
          .then(response => {
-           return response.text();
+           return response.data;
          })
          .then(body => {
            orcidCSV = orcidCSV + body
@@ -100,16 +125,15 @@ app.get('/', cache('2 hours'), function (req, res) {
          .catch((error) => {
            console.error('Error:', error);
          })
-       );
+      );
 
       Promise.all(orcidsListFetches).then(function () {
         Readable.from(orcidCSV)
          .pipe(csv())
          .on('data', (row) => {
-             orcidsList.push(row);
+            orcidsList.push(row);
           })
          .on('end', () => {
-          console.log("Length of orcidsList: ",orcidsList.length);
           res.render('index', {
             count: n,
             orcids: orcidsList,
@@ -138,7 +162,7 @@ app.get('/', cache('2 hours'), function (req, res) {
   }
 })
 
-app.get('/download', cache('2 hours'), function(req, res) {
+app.get('/download', cache('0 hours'), function(req, res) {
   res.type('text/csv');
   query = orcidQueryTools.buildOrcidQuery(req)
   if (query.length > 0) {
@@ -151,7 +175,6 @@ app.get('/download', cache('2 hours'), function(req, res) {
             '/?q='+ query +
             '&rows=' + r +
             '&sort=' + sortOptions;
-    console.log(u);
     //to do local testing uncomment the next line
     //var u = "http://localhost:4000/orcid-search-response"
     var options = {
@@ -165,10 +188,10 @@ app.get('/download', cache('2 hours'), function(req, res) {
     var orcidsList = [];
     var orcidJsonPromises = [];
     var listFullOrcidRecords = [];
-  
-    fetch(options.url, {headers: options.headers})
-    .then(searchResultResponse => {
-      return searchResultResponse.json();
+    
+    queueRequest(remoteAPIQueue,options,query+r+sortOptions)
+    .then(response => {
+      return response.data
     })
     .then(searchResult => {
       pageSize = 1000
@@ -178,57 +201,55 @@ app.get('/download', cache('2 hours'), function(req, res) {
       console.log("With a page size of ", pageSize, " that is ", numberPages, " pages.")
       fetchList = [];
       for(i = 1; i-1 < numberPages; i++) {
-        url = orcidQueryTools.buildOrcidAPIUrl(orcidAPIBase,orcidAPIVersion,orcidAPIType) +
+        options.url = orcidQueryTools.buildOrcidAPIUrl(orcidAPIBase,orcidAPIVersion,orcidAPIType) +
               '/?q=' + query +
               '&start=' + lastRec +
               '&rows=' + pageSize;
-        //If you want to see which URLs are being fetched, uncomment the next line
-        console.log(url);
         fetchList.push(
-          fetch(url, {headers: options.headers})
-           .then(response => {
-             return response.json();
-           })
-           .then(orcidRecord => {
-             for (var k in orcidRecord["result"]) {
-               orcidsList.push(orcidRecord["result"][k]["orcid-identifier"]);
-             }
-           })
-           .catch((error) => {
-             console.error('Error:', error);
-           })
-         );
-         lastRec = lastRec+pageSize;
+          queueRequest(remoteAPIQueue,options,query+lastRec+pageSize)
+          .then(response => {
+            return response.data;
+          })
+          .then(orcidRecord => {
+            for (var k in orcidRecord["result"]) {
+              orcidsList.push(orcidRecord["result"][k]["orcid-identifier"]);
+            }
+          })
+          .catch((error) => {
+            console.error('Error:', error);
+          })
+          );
+        lastRec = lastRec+pageSize;
       }
       console.log("Number of fetches:" + fetchList.length);
       return fetchList;
     })
     .then(fetchList => {
-      //console.log(fetchList[0])
-      Promise.all(fetchList)
-      .then(function () {
+      Promise.all(fetchList).then(() => {
         for(let i = 0; i < orcidsList.length; i++) {
-          u = orcidsList[i].uri
+          orcid = orcidsList[i].path
+          options = {
+            url: orcidsList[i].uri,
+            headers: {
+            'Accept': 'application/vnd.orcid+json'
+            }
+          }
           orcidJsonPromises.push(
-            fetch(u, {headers: options.headers})
-             .then(response => {
-               return response.json();
-             })
-             .then(orcidJson => {
-               
-               listFullOrcidRecords.push(orcidJson);
-             })
-             .catch((error) => {
-               console.error('Error:', error);
-             })
+            queueRequest(remoteAPIQueue,options,orcid)
+            .then(response => {
+             return response.data;
+            })
+            .then(orcidJson => {
+             listFullOrcidRecords.push(orcidJson);
+            })
+            .catch((error) => {
+             console.error('Error:', error);
+            })
            );
          }
          return orcidJsonPromises;
-       })
-       .then(function () {
-         //console.log(orcidJsonPromises);
-         Promise.all(orcidJsonPromises)
-          .then(function () {
+      }).then(orcidJsonPromises => {
+         Promise.all(orcidJsonPromises).then(() => {
             csvRecords = []
             listFullOrcidRecords.forEach( orcidRecord => {
               // orcidId = orcidQueryTools.getOrcidId(orcidJson);
@@ -253,21 +274,16 @@ app.get('/download', cache('2 hours'), function(req, res) {
               )
             })
             return papa.unparse(csvRecords);
-          }).
-          then (attach => {
-            //response = "";
-            //res.attachment(attach)
+          }).then (attach => {
+            console.log(attach)
             res.send(attach)
-          })
-          .catch((error) => {
+          }).catch((error) => {
             console.error('Error:', error);
           });
-       })
-      .catch((error) => {
+      }).catch((error) => {
         console.error('Error:', error);
       });
-    })
-    .catch((error) => {
+    }).catch((error) => {
       console.error('Error:', error);
     });
   } else {
@@ -279,15 +295,15 @@ app.get('/orcid-search-response', function(req, res) {
   res.render('orcid-search-response');
 });
 
-app.get('/orcid/:orcid', cache('1 day'), function (req, res) {
+app.get('/orcid/:orcid', cache('0 day'), function (req, res) {
   var orcidJson;
   if (typeof req.params["orcid"] !== "undefined") {
-    
+    orcid = req.params["orcid"]
     // ORCiD API Search query params:
     // q = query
     // start = first record to return (defaults to 1)
     // rows = number of records to return (defaults to 100, max 200)
-    var u = 'https://pub.orcid.org/v3.0/'+req.params["orcid"];
+    var u = 'https://pub.orcid.org/v3.0/'+orcid;
     //to do local testing uncomment the next line
     //var u = "http://localhost:4000/orcid-search-response"
     var options = {
@@ -296,37 +312,58 @@ app.get('/orcid/:orcid', cache('1 day'), function (req, res) {
       'Accept': 'application/vnd.orcid+json'
       }
     };
-    fetch(options.url, {headers: options.headers})
-      .then(response => {
-        return response.json();
-      })
-      .then(orcidJson => {
-        response = {}
-        // LAST UPDATED
-        response.lastUpdated = orcidQueryTools.getLastUpdated(orcidJson);
-        // NAME
-        response.name = orcidQueryTools.getName(orcidJson);
-        // EMPLOYMENTS
-        response.employments = orcidQueryTools.getEmployments(orcidJson);
-        // EDUCATIONS
-        response.educations = orcidQueryTools.getEducations(orcidJson);
-        // EMAILS
-        response.emails = orcidQueryTools.getEmails(orcidJson);
-        // IDS
-        response.ids = orcidQueryTools.getIds(orcidJson);
-        // WORK COUNT
-        response.workCount = orcidQueryTools.getWorkCount(orcidJson);
-        // Now send it
-        res.send(response);
-      })
-      .catch((error) => {
-        console.error('Error:', error);
-      });
+    
+    queueRequest(remoteAPIQueue,options,orcid)
+    .then(response => {
+      return response.data;
+    }).then(orcidJson => {
+      response = {}
+      // LAST UPDATED
+      response.lastUpdated = orcidQueryTools.getLastUpdated(orcidJson);
+      // NAME
+      response.name = orcidQueryTools.getName(orcidJson);
+      // EMPLOYMENTS
+      response.employments = orcidQueryTools.getEmployments(orcidJson);
+      // EDUCATIONS
+      response.educations = orcidQueryTools.getEducations(orcidJson);
+      // EMAILS
+      response.emails = orcidQueryTools.getEmails(orcidJson);
+      // IDS
+      response.ids = orcidQueryTools.getIds(orcidJson);
+      // WORK COUNT
+      response.workCount = orcidQueryTools.getWorkCount(orcidJson);
+      // Now send it
+      res.send(response);
+    }).catch((error) => {
+      console.error('Error:', error);
+    });
   } else {
     res.send({error: 'message'})
   }
 });
 
-app.listen(process.env.PORT || 4000, function () {
-  console.log('Example app listening on port ' + (process.env.PORT || 4000));
+app.get('/api/cache/clear/', (req, res) => {
+  res.json(apicache.clear())
 })
+
+function queueRequest(queue, options, requestId) {
+  console.log("Adding to queue: " + options.url)
+  return queue.request((retry) => axios.get(options.url, {headers: options.headers})
+    .then(response => response)
+    .catch(error => {
+      retry_after = 3
+      try {
+        retry_after = error.response.data.parameters.retry_after
+      } catch (e) {
+        retry_after = 3
+      }
+      console.log(error.toJSON())
+      if (error.code === "ECONNRESET" || error.code === "ECONNTIMEOUT") {
+        return retry(retry_after)
+      }
+      else if (error.response.status === 429 || error.response.status === 503) {
+        return retry(retry_after)
+      }
+      throw error;
+    }), requestId)
+}

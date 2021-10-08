@@ -10,12 +10,13 @@
   "license": "",
   "dependencies": {
     "apicache": "^1.4.0",
+    "axios": "^0.22.0",
     "body-parser": "^1.18.3",
     "csv-parser": "^3.0.0",
-    "ejs": "^2.6.1",
     "express": "^4.16.4",
     "node-fetch": "^2.6.1",
     "papaparse": "^5.3.1",
-    "pug": "^3.0.2"
+    "pug": "^3.0.2",
+    "smart-request-balancer": "^2.1.1"
   }
 }
