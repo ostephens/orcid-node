@@ -11,11 +11,11 @@ const bodyParser = require('body-parser');
 const Queue = require('smart-request-balancer');
 
 const orcidQueryTools = require('./orcidQueryTools.js')
-var orcidAPIBase = 'https://pub.orcid.org',
+let orcidAPIBase = 'https://pub.orcid.org',
     orcidAPIVersion = 'v3.0',
     orcidAPIType = 'search';
     
-var lastRec = 0,
+let lastRec = 0,
     query = "",
     perPage = 10,
     currentPage = 1,
@@ -25,16 +25,16 @@ var lastRec = 0,
 const remoteAPIQueue = new Queue({
   rules: {
     common: {
-      rate: 1,
+      rate: 24,
       limit: 1,
       priority: 1
     },
     default: {
-      rate: 1,
+      rate: 24,
       limit: 1,
     },
     overall: {
-      rate: 1,
+      rate: 24,
       limit: 1
     },
     retryTime: 5,
@@ -75,24 +75,24 @@ app.get('/', cache('2 hours'), function (req, res) {
     // q = query
     // start = first record to return (defaults to 1, max 10000)
     // rows = number of records to return (defaults to 100, max 1000)
-    var u = orcidQueryTools.buildOrcidAPIUrl(orcidAPIBase,orcidAPIVersion,orcidAPIType)+
+    let u = orcidQueryTools.buildOrcidAPIUrl(orcidAPIBase,orcidAPIVersion,orcidAPIType)+
         '/?q='+ query +
         '&rows='+r;
     //to do local testing uncomment the next line
     //var u = "http://localhost:4000/orcid-search-response"
-    var options = {
+    let options = {
       url: u,
       headers: {
       'Accept': 'application/vnd.orcid+json'
       }
     };
     lastRec = 0;
-    var n = 0;
+    let n = 0;
     
     //set default variables
-    var orcidCSV = '';
-    var orcidsList = [];
-    var orcidsListFetches = [];
+    let orcidCSV = '';
+    let orcidsList = [];
+    let orcidsListFetches = [];
   
     queueRequest(remoteAPIQueue,options,query+rows)
     .then(response => {
@@ -104,14 +104,14 @@ app.get('/', cache('2 hours'), function (req, res) {
       console.log("Query found " + n + " ORCiD IDs");
       numberOfPages = Math.ceil(n/rows);
       console.log("With a page size of ", rows, " that is ", numberOfPages, " pages.")
-      options.url = orcidQueryTools.buildOrcidAPIUrl(orcidAPIBase,orcidAPIVersion,'csv-search')+
+      let options.url = orcidQueryTools.buildOrcidAPIUrl(orcidAPIBase,orcidAPIVersion,'csv-search')+
                '/?q=' + query +
                '&fl=orcid,given-names,family-name,current-institution-affiliation-name,past-institution-affiliation-name,email' +
                '&start=' + start +
                '&rows=' + rows +
                '&sort=' + sortOptions;
 
-      options.headers = {
+      let options.headers = {
         'Accept': 'text/csv'
         }
       orcidsListFetches.push(
@@ -171,23 +171,24 @@ app.get('/download', cache('0 hours'), function(req, res) {
     // q = query
     // start = first record to return (defaults to 1, max 10000)
     // rows = number of records to return (defaults to 100, max 1000)
-    var u = orcidQueryTools.buildOrcidAPIUrl(orcidAPIBase,orcidAPIVersion,orcidAPIType)+
+    let u = orcidQueryTools.buildOrcidAPIUrl(orcidAPIBase,orcidAPIVersion,orcidAPIType)+
             '/?q='+ query +
             '&rows=' + r +
             '&sort=' + sortOptions;
     //to do local testing uncomment the next line
     //var u = "http://localhost:4000/orcid-search-response"
-    var options = {
+    let options = {
       url: u,
       headers: {
-      'Accept': 'application/vnd.orcid+json'
+        'Accept': 'application/vnd.orcid+json'
       }
     };
     lastRec = 0;
-    var n = 0;
-    var orcidsList = [];
-    var orcidJsonPromises = [];
-    var listFullOrcidRecords = [];
+    let n = 0;
+    let fetchList = [];
+    let orcidsList = [];
+    let orcidJsonPromises = [];
+    let listFullOrcidRecords = [];
     
     queueRequest(remoteAPIQueue,options,query+r+sortOptions)
     .then(response => {
@@ -199,7 +200,6 @@ app.get('/download', cache('0 hours'), function(req, res) {
       console.log("Query found " + n + " ORCiD IDs");
       numberPages = Math.ceil(n/pageSize);
       console.log("With a page size of ", pageSize, " that is ", numberPages, " pages.")
-      fetchList = [];
       for(i = 1; i-1 < numberPages; i++) {
         options.url = orcidQueryTools.buildOrcidAPIUrl(orcidAPIBase,orcidAPIVersion,orcidAPIType) +
               '/?q=' + query +
@@ -211,9 +211,9 @@ app.get('/download', cache('0 hours'), function(req, res) {
             return response.data;
           })
           .then(orcidRecord => {
-            for (var k in orcidRecord["result"]) {
-              orcidsList.push(orcidRecord["result"][k]["orcid-identifier"]);
-            }
+            orcidRecord["result"].forEach( result => {
+              orcidsList.push(result["orcid-identifier"]);
+            })
           })
           .catch((error) => {
             console.error('Error:', error);
@@ -222,16 +222,13 @@ app.get('/download', cache('0 hours'), function(req, res) {
         lastRec = lastRec+pageSize;
       }
       console.log("Number of fetches:" + fetchList.length);
-      return fetchList;
-    })
-    .then(fetchList => {
       Promise.all(fetchList).then(() => {
         for(let i = 0; i < orcidsList.length; i++) {
           orcid = orcidsList[i].path
           options = {
             url: orcidsList[i].uri,
             headers: {
-            'Accept': 'application/vnd.orcid+json'
+              'Accept': 'application/vnd.orcid+json'
             }
           }
           orcidJsonPromises.push(
@@ -296,20 +293,20 @@ app.get('/orcid-search-response', function(req, res) {
 });
 
 app.get('/orcid/:orcid', cache('0 day'), function (req, res) {
-  var orcidJson;
+  let orcidJson;
   if (typeof req.params["orcid"] !== "undefined") {
     orcid = req.params["orcid"]
     // ORCiD API Search query params:
     // q = query
     // start = first record to return (defaults to 1)
     // rows = number of records to return (defaults to 100, max 200)
-    var u = 'https://pub.orcid.org/v3.0/'+orcid;
+    let u = 'https://pub.orcid.org/v3.0/'+orcid;
     //to do local testing uncomment the next line
     //var u = "http://localhost:4000/orcid-search-response"
-    var options = {
+    let options = {
       url: u,
       headers: {
-      'Accept': 'application/vnd.orcid+json'
+        'Accept': 'application/vnd.orcid+json'
       }
     };
     
@@ -346,10 +343,26 @@ app.get('/api/cache/clear/', (req, res) => {
   res.json(apicache.clear())
 })
 
+function setOptions(url, responseFormat) {
+  let options = {}
+    url: url,
+    headers: {}
+    }
+  if (responseFormat === "csv") {
+    headers['Accept'] = 'text/csv';
+  } else if (responseFormat === "json") {
+    headers['Accept'] = 'application/vnd.orcid+json';
+  }
+  return options;
+}
+
 function queueRequest(queue, options, requestId) {
-  console.log("Adding to queue: " + options.url)
-  return queue.request((retry) => axios.get(options.url, {headers: options.headers})
-    .then(response => response)
+  const u = options.url
+  const h = options.headers
+  return queue.request((retry) => axios.get(u, {headers: h})
+    .then(response => {
+      return response;
+    })
     .catch(error => {
       retry_after = 3
       try {
@@ -365,5 +378,5 @@ function queueRequest(queue, options, requestId) {
         return retry(retry_after)
       }
       throw error;
-    }), requestId)
+    }), 'a4a442ba-5cd5-470a-b65c-81202a088a32')
 }
