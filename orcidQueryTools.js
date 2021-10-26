@@ -4,22 +4,22 @@ const buildOrcidAPIUrl = function(base,version,type) {
 
 const buildOrcidQuery = function(req) {
   queryparts = [];
-  if (typeof req.query.ringgold !== "undefined") {
+  if (typeof req.query.ringgold !== "undefined" && req.query.ringgold.length > 0) {
     req.query.ringgold.split("|").forEach(function(q) {
       queryparts.push("ringgold-org-id:" + q)
     });
   }
-  if (typeof req.query.grid !== "undefined") {
+  if (typeof req.query.grid !== "undefined" && req.query.grid.length > 0) {
     req.query.grid.split("|").forEach(function(q) {
       queryparts.push("grid-org-id:" + q)
     });
   }
-  if (typeof req.query.emaildomain !== "undefined") {
+  if (typeof req.query.emaildomain !== "undefined" && req.query.emaildomain.length > 0) {
     req.query.emaildomain.split("|").forEach(function(q) {
       queryparts.push("email:*@" + q)
     });
   }
-  if (typeof req.query.orgname !== "undefined") {
+  if (typeof req.query.orgname !== "undefined" && req.query.orgname.length > 0) {
     req.query.orgname.split("|").forEach(function(q) {
       queryparts.push("affiliation-org-name:%22" + encodeURI(q) + "%22")
     });
@@ -35,7 +35,7 @@ const getOrcidId = function (orcidJson) {
 const getLastUpdated = function (orcidJson) {
   lastUpdated = getNested(orcidJson, "history", "last-modified-date", "value");
   if(typeof lastUpdated != undefined || lastUpdated != null) {
-    var ud = new Date(lastUpdated).toISOString();
+    let ud = new Date(lastUpdated).toISOString();
     lastUpdated = ud.substring(0,10);
   } else {
     lastUpdated = "No last updated date";
@@ -58,19 +58,19 @@ const getEmployments = function (orcidJson) {
   employmentAffiliationGroups = getNested(orcidJson, "activities-summary","employments","affiliation-group")
   employmentAffiliationGroups.forEach(function(ag){
     ag["summaries"].forEach(function(emp){
-      var org = getNested(emp, "employment-summary","organization","name");
+      let org = getNested(emp, "employment-summary","organization","name");
       if(typeof org === undefined || org === null) {
         org =  "No organization name";
       }
-      var role = getNested(emp, "employment-summary", "role-title");
+      let role = getNested(emp, "employment-summary", "role-title");
       if(typeof role === undefined || role === null) {
         role = "No job title";
       } 
-      var startYear = getNested(emp, "employment-summary", "start-date", "year", "value")
+      let startYear = getNested(emp, "employment-summary", "start-date", "year", "value")
       if(typeof startYear === undefined || startYear === null) {
         startYear = "*";
       }
-      var endYear = getNested(emp, "employment-summary", "end-date", "year", "value")
+      let endYear = getNested(emp, "employment-summary", "end-date", "year", "value")
       if(typeof endYear === undefined || endYear === null) {
         endYear = "*";
       }
@@ -86,19 +86,19 @@ const getEducations = function (orcidJson) {
   educationAffiliationGroups = getNested(orcidJson, "activities-summary","educations","affiliation-group")
   educationAffiliationGroups.forEach(function(ag){
     ag["summaries"].forEach(function(emp){
-      var org = getNested(emp, "education-summary","organization","name");
+      let org = getNested(emp, "education-summary","organization","name");
       if(typeof org === undefined || org === null) {
         org =  "No organization name";
       }
-      var role = getNested(emp, "education-summary", "role-title");
+      let role = getNested(emp, "education-summary", "role-title");
       if(typeof role === undefined || role === null) {
         role = "No course of study";
       } 
-      var startYear = getNested(emp, "education-summary", "start-date", "year", "value")
+      let startYear = getNested(emp, "education-summary", "start-date", "year", "value")
       if(typeof startYear === undefined || startYear === null) {
         startYear = "*";
       }
-      var endYear = getNested(emp, "education-summary", "end-date", "year", "value")
+      let endYear = getNested(emp, "education-summary", "end-date", "year", "value")
       if(typeof endYear === undefined || endYear === null) {
         endYear = "*";
       }
