@@ -4,6 +4,22 @@ const buildOrcidAPIUrl = function(base,version,type) {
 
 const buildOrcidQuery = function(req) {
   queryparts = [];
+  if (typeof req.query.organizationIdentifiers !== "undefined" && req.query.organizationIdentifiers.length > 0) {
+    let j = JSON.parse(req.query.organizationIdentifiers)
+    if (j.hasOwnProperty('ringgold')) {
+      queryparts.push("ringgold-org-id:" + j.ringgold)
+    }
+    if (j.hasOwnProperty('grid')) {
+      queryparts.push("grid-org-id:" + j.grid)
+    }
+    //queryparts.push("ror-org-id:" + escape(j.ror))
+    if (j.hasOwnProperty('domains')) {
+      j.domains.split("|").forEach(function(q) {
+        queryparts.push("email:*@" + q)
+      });
+    }
+    console.log(queryparts);
+  }
   if (typeof req.query.ringgold !== "undefined" && req.query.ringgold.length > 0) {
     req.query.ringgold.split("|").forEach(function(q) {
       queryparts.push("ringgold-org-id:" + q)
@@ -65,7 +81,7 @@ const getEmployments = function (orcidJson) {
       let role = getNested(emp, "employment-summary", "role-title");
       if(typeof role === undefined || role === null) {
         role = "No job title";
-      } 
+      }
       let startYear = getNested(emp, "employment-summary", "start-date", "year", "value")
       if(typeof startYear === undefined || startYear === null) {
         startYear = "*";
@@ -93,7 +109,7 @@ const getEducations = function (orcidJson) {
       let role = getNested(emp, "education-summary", "role-title");
       if(typeof role === undefined || role === null) {
         role = "No course of study";
-      } 
+      }
       let startYear = getNested(emp, "education-summary", "start-date", "year", "value")
       if(typeof startYear === undefined || startYear === null) {
         startYear = "*";
