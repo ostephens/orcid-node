@@ -3,51 +3,58 @@ extends layout
 include ./mixins/pagination.pug
 
 block queryForm
-  h2= "Enter Ringgold IDs, GRID IDs, Email domains and institution names"
-  p= "All the entered identifiers etc. will be used to search for linked ORCIDs"
+  p= "Enter the organization name, select the appropriate organization, then click 'Submit' to search for all affiliated ORCIDs available for public view"
   form(action="/" method="get")
     fieldset
-      select(id='ror-api',name='ror',placeholder='Start typing an institution name for a RoR identifier')
-      select(id='ringgold-identifiers',name='ringgold',placeholder='Start typing an institution name for a Ringgold identifier')
-      select(id='grid-identifiers',name='grid',placeholder='Start typing an institution name for a GRID identifier')
-      select(id='email-domains',name='emaildomain',placeholder='Enter a list of pipe-separated email domains')
-      input(id='org-names',name='orgname',placeholder='Enter a list of pipe-separated organization names')
+      select(id='ror-api',name='organizationIdentifiers',placeholder='Start typing an institution name...')
       input(type="submit" value="Get ORCiDs")
 
-block resultsTable
-  span.float-start
-    h2= "Total affiliated ORCIDs found: " + itemCount
+block results
   -var maxPages = Math.min(parseInt(numberOfPages),10000/parseInt(perPage)+1)
   -var maxDownload = 10000
+  if organizationIdentifiers
+    -var name = JSON.parse(organizationIdentifiers).name
+    -var ror = JSON.parse(organizationIdentifiers).ror
+    -var grid = JSON.parse(organizationIdentifiers).grid
+    -var ringgold = JSON.parse(organizationIdentifiers).ringgold
+    -var domains = JSON.parse(organizationIdentifiers).domains
+    -var csvlink = "./download/?organizationIdentifiers="+organizationIdentifiers
   if itemCount < 1
-    h3= "No results found so far. Please enter an institution and click \"Get ORCIDs\" to find results"
+    div.d-inline-flex.p-2
+      h3= "Please enter an institution and click \"Get ORCIDs\" to find results"
   else
-    if itemCount > 10000
-      -const maxItems = 10000+parseInt(perPage)
-      h3= "Displaying first " + maxItems.toString() + " ORCIDs only"
-      h3= "That's " + maxPages.toString() + " pages"
-      if perPage < 1000
-        p Increasing the perPage parameter to 1000 will display the maximum number of items based on the ORCID public API (11000)
-    if itemCount > maxDownload
-      h3= "Unfortunately due to limitations of the ORCID public API we cannot offer a CSV download for results sets greater than " + maxDownload
-    else 
-        span.float-end
-          a(href=`./download/?${urlQuery}`) Download CSV
-
-    +pagination(5, maxPages, 5, currentPage, `?${urlQuery}&currentPage=`)
-    table.table.table-striped
-      tr
-        th ORCID
-        th Name
-        th Current affiliations
-        th Past affiliations
-        th Email
-      each orcid, index in orcids
+    div
+      h4= "Found " + itemCount + " ORCIDs affiliated with " + name + " using the identifiers: "
+      div.text-muted= "ROR: " + ror
+      div.text-muted= "GRID: " + grid
+      div.text-muted= "Ringgold: " + ringgold
+      div.text-muted= "Email domains: " + domains
+    div
+      if itemCount > 10000
+        -const maxItems = 10000+parseInt(perPage)
+        p= "Due to the limit on the public API, we are only able to display " + maxItems.toString() + " ORCIDs only (That's " + maxPages.toString() + " pages)"
+        if perPage < 1000
+          p Increasing the perPage parameter to 1000 will display the maximum number of items based on the ORCID public API (11000)
+      if itemCount > maxDownload
+        p= "Unfortunately due to limitations of the ORCID public API we cannot offer a CSV download for results sets greater than " + maxDownload
+      else
+        div
+          a(href=`${csvlink}`)= "Download CSV (estimate time to generate is "+itemCount/24+" seconds)"
+    #resultsTable.container
+      +pagination(5, maxPages, 5, currentPage, `?${urlQuery}&currentPage=`)
+      table.table.table-striped
         tr
-          td= orcid.orcid
-          td= orcid['given-names'] + " " + orcid['family-name']
-          td!= orcid['current-institution-affiliation-name'].split(",").join(";<br />")
-          td!= orcid['past-institution-affiliation-name'].split(",").join(";<br />")
-          td!= orcid.email.split(",").join(";<br />")
-          
-    +pagination(5, maxPages, 5, currentPage, `?${urlQuery}&currentPage=`)
+          th ORCID
+          th Name
+          th Current affiliations
+          th Past affiliations
+          th Email
+        each orcid, index in orcids
+          tr
+            td= orcid.orcid
+            td= orcid['given-names'] + " " + orcid['family-name']
+            td!= orcid['current-institution-affiliation-name'].split(",").join(";<br />")
+            td!= orcid['past-institution-affiliation-name'].split(",").join(";<br />")
+            td!= orcid.email.split(",").join(";<br />")
+
+      +pagination(5, maxPages, 5, currentPage, `?${urlQuery}&currentPage=`)
