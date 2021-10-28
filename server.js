@@ -14,10 +14,10 @@ const orcidQueryTools = require('./orcidQueryTools.js')
 let orcidAPIBase = 'https://pub.orcid.org',
     orcidAPIVersion = 'v3.0',
     orcidAPIType = 'search';
-    
+
 let lastRec = 0,
     query = "",
-    perPage = 10,
+    perPage = 1000,
     currentPage = 1,
     urlQuery = "",
     sortOptions = "orcid%20asc";
@@ -25,19 +25,19 @@ let lastRec = 0,
 const remoteAPIQueue = new Queue({
   rules: {
     common: {
-      rate: 24,
+      rate: 10,
       limit: 1,
       priority: 1
     },
     default: {
-      rate: 24,
+      rate: 10,
       limit: 1,
     },
     overall: {
-      rate: 24,
+      rate: 10,
       limit: 1
     },
-    retryTime: 5,
+    retryTime: 10,
     ignoreOverallOverheat: false
   }
 });
@@ -83,12 +83,12 @@ app.get('/', cache('2 hours'), function (req, res) {
     let t = 'json'
     lastRec = 0;
     let n = 0;
-    
+
     //set default variables
     let orcidCSV = '';
     let orcidsList = [];
     let orcidsListFetches = [];
-  
+
     queueRequest(remoteAPIQueue,setOptions(u,t))
     .then(response => {
       return response.data;
@@ -98,7 +98,7 @@ app.get('/', cache('2 hours'), function (req, res) {
       n = info["num-found"];
       console.log("Query found " + n + " ORCiD IDs");
       numberOfPages = Math.ceil(n/rows);
-      console.log("With a page size of ", rows, " that is ", numberOfPages, " pages.")
+      //console.log("With a page size of ", rows, " that is ", numberOfPages, " pages.")
       let u = orcidQueryTools.buildOrcidAPIUrl(orcidAPIBase,orcidAPIVersion,'csv-search')+
                '/?q=' + query +
                '&fl=orcid,given-names,family-name,current-institution-affiliation-name,past-institution-affiliation-name,email' +
@@ -135,6 +135,7 @@ app.get('/', cache('2 hours'), function (req, res) {
       		  currentPage: currentPage,
             numberOfPages: numberOfPages,
             urlQuery: urlQuery,
+            organizationIdentifiers: req.query.organizationIdentifiers,
             error: null});
          })
       });
@@ -144,8 +145,8 @@ app.get('/', cache('2 hours'), function (req, res) {
     });
   } else {
     res.render("body", {
-      count: null, 
-      orcids: [], 
+      count: null,
+      orcids: [],
       itemCount: 0,
       perPage: null,
       currentPage: null,
@@ -177,17 +178,19 @@ app.get('/download', cache('0 hours'), function(req, res) {
     let orcidsList = [];
     let orcidJsonPromises = [];
     let listFullOrcidRecords = [];
-    
+
     queueRequest(remoteAPIQueue,setOptions(u,t))
     .then(response => {
       return response.data
     })
     .then(searchResult => {
+      res.header('Content-Type', 'text/csv');
+      res.attachment("id2-csv-export.csv");
       pageSize = 1000
       n = searchResult["num-found"];
       console.log("Query found " + n + " ORCiD IDs");
       numberPages = Math.ceil(n/pageSize);
-      console.log("With a page size of ", pageSize, " that is ", numberPages, " pages.")
+      //console.log("With a page size of ", pageSize, " that is ", numberPages, " pages.")
       for(i = 1; i-1 < numberPages; i++) {
         let u = orcidQueryTools.buildOrcidAPIUrl(orcidAPIBase,orcidAPIVersion,orcidAPIType) +
               '/?q=' + query +
@@ -223,41 +226,28 @@ app.get('/download', cache('0 hours'), function(req, res) {
             })
             .then(orcidJson => {
              listFullOrcidRecords.push(orcidJson);
+             const csv = papa.unparse([{
+               orcid: orcidQueryTools.getOrcidId(orcidJson),
+               lastUpdated: orcidQueryTools.getLastUpdated(orcidJson),
+               name: orcidQueryTools.getName(orcidJson),
+               educations: orcidQueryTools.getEducations(orcidJson),
+               employments: orcidQueryTools.getEmployments(orcidJson),
+               ids: orcidQueryTools.getIds(orcidJson),
+               emails: orcidQueryTools.getEmails(orcidJson),
+               workCount: orcidQueryTools.getWorkCount(orcidJson)
+             }])
+             res.write(csv);
             })
             .catch((error) => {
              console.error('Error:', error);
             })
            );
          }
+         console.log("Promises for orcidJson length: " +orcidJsonPromises.length);
          return orcidJsonPromises;
       }).then(orcidJsonPromises => {
          Promise.all(orcidJsonPromises).then(() => {
-            csvRecords = []
-            listFullOrcidRecords.forEach( orcidRecord => {
-              // orcidId = orcidQueryTools.getOrcidId(orcidJson);
-              // lastUpdated = orcidQueryTools.getLastUpdated(orcidJson);
-              // name = orcidQueryTools.getName(orcidJson);
-              // employments = orcidQueryTools.getEmployments(orcidJson);
-              // educations = orcidQueryTools.getEducations(orcidJson);
-              // emails = orcidQueryTools.getEmails(orcidJson);
-              // ids = orcidQueryTools.getIds(orcidJson);
-              // workCount = orcidQueryTools.getWorkCount(orcidJson);
-              csvRecords.push(
-                {
-                  orcid: orcidQueryTools.getOrcidId(orcidRecord),
-                  lastUpdated: orcidQueryTools.getLastUpdated(orcidRecord),
-                  name: orcidQueryTools.getName(orcidRecord),
-                  educations: orcidQueryTools.getEducations(orcidRecord),
-                  employments: orcidQueryTools.getEmployments(orcidRecord),
-                  ids: orcidQueryTools.getIds(orcidRecord),
-                  emails: orcidQueryTools.getEmails(orcidRecord),
-                  workCount: orcidQueryTools.getWorkCount(orcidRecord)
-                }
-              )
-            })
-            return papa.unparse(csvRecords);
-          }).then (attach => {
-            res.send(attach)
+           res.end()
           }).catch((error) => {
             console.error('Error:', error);
           });
@@ -288,7 +278,7 @@ app.get('/orcid/:orcid', cache('0 day'), function (req, res) {
     //to do local testing uncomment the next line
     //var u = "http://localhost:4000/orcid-search-response"
     let t = 'json';
-    
+
     queueRequest(remoteAPIQueue,setOptions(u,t))
     .then(response => {
       return response.data;
@@ -343,13 +333,13 @@ function queueRequest(queue, options) {
       return response;
     })
     .catch(error => {
-      retry_after = 3
+      retry_after = 10
       try {
         retry_after = error.response.data.parameters.retry_after
       } catch (e) {
-        retry_after = 3
+        retry_after = 10
       }
-      // console.log(error.toJSON())
+      console.log(error.toJSON())
       if (error.code === "ECONNRESET" || error.code === "ECONNTIMEOUT") {
         return retry(retry_after)
       }

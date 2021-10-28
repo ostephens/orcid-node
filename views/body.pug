@@ -39,7 +39,7 @@ block results
         p= "Unfortunately due to limitations of the ORCID public API we cannot offer a CSV download for results sets greater than " + maxDownload
       else
         div
-          a(href=`${csvlink}`)= "Download CSV (estimate time to generate is "+itemCount/24+" seconds)"
+          a(href=`${csvlink}`)= "Download CSV (the estimated time to generate the download is "+Math.ceil(itemCount/10/60)+" minutes)"
     #resultsTable.container
       +pagination(5, maxPages, 5, currentPage, `?${urlQuery}&currentPage=`)
       table.table.table-striped
