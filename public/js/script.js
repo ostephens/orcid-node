@@ -10,42 +10,6 @@ function selectRegion() {
 }
 
 function selectBoxes() {
-  /*
-  new TomSelect('#ringgold-identifiers',{
-    maxItems: 1,
-    valueField: 'id',
-    labelField: 'name',
-    searchField: 'name',
-    plugins: ['remove_button'],
-    persist: false,
-    create: true,
-    onDelete: function(values) {
-      return confirm(values.length > 1 ? 'Are you sure you want to remove these ' + values.length + ' items?' : 'Are you sure you want to remove ' + values[0] + '?');
-    },
-    options: ringgolds
-  });
-  new TomSelect('#grid-identifiers',{
-    maxItems: 1,
-    valueField: 'id',
-    labelField: 'name',
-    searchField: 'name',
-    plugins: ['remove_button'],
-    persist: false,
-    create: true,
-    onDelete: function(values) {
-      return confirm(values.length > 1 ? 'Are you sure you want to remove these ' + values.length + ' items?' : 'Are you sure you want to remove '  + values[0] + '?');
-    },
-    options: grids
-  });
-  new TomSelect('#email-domains',{
-    create: true,
-    createFilter: '([^<>()[\\]\\.,;:\\s@\\"]\\.(ac\\.uk|edu)\\|?)+'
-  });
-  new TomSelect('#org-names',{
-    create: true,
-    createFilter: '(.+\\|?)+'
-  });
-  */
   new TomSelect('#ror-api',{
   valueField: 'idList',
   labelField: 'name',
