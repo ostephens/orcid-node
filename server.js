@@ -203,6 +203,12 @@ app.get('/download', cache('0 hours'), function(req, res) {
     .then(searchResult => {
       res.header('Content-Type', 'text/csv');
       res.attachment("id2-csv-export.csv");
+      csvHeaders = papa.unparse({
+                                	"fields": ["orcid","lastUpdated","name",
+                                              "educations","employments","ids",
+                                              "emails","workCount"]
+                                });
+      res.write(csvHeaders+"\r\n");
       pageSize = 1000
       n = searchResult["num-found"];
       console.log("Query found " + n + " ORCiD IDs");
@@ -237,9 +243,6 @@ app.get('/download', cache('0 hours'), function(req, res) {
           let u = orcidsList[i].uri;
           let t = 'json';
           let includeHeader = false
-          if(i===0) {
-            includeHeader = true
-          }
           orcidJsonPromises.push(
             queueRequest(remoteAPIQueue,setOptions(u,t))
             .then(response => {
