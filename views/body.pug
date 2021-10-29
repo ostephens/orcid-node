@@ -46,7 +46,7 @@ block results
               span.spinner-border.text-primary.invisible(role="status" id="csvdownloadSpinner")
                 span.visually-hidden Downloading now...
               p= "(the estimated time to generate the download is "+Math.ceil(itemCount/10/60)+" minutes)"
-              div Includes ORCID, date record last updated, name, all known education affilations, all known employment affiliations, SCOPUS and other IDs, list of known emails, number of works listed on the ORCiD record)
+              div Includes ORCID, date record last updated, name, all known education affilations, all known employment affiliations, SCOPUS and other IDs, list of known emails, number of works listed on the ORCiD record
   #resultsTable.container
     if itemCount > 0
       +pagination(5, maxPages, 5, currentPage, `?${urlQuery}&currentPage=`)
