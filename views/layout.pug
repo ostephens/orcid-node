@@ -10,6 +10,7 @@ html
     script(src="https://cdn.jsdelivr.net/npm/tom-select@2.0.0-rc.4/dist/js/tom-select.complete.min.js")
     script(src="/data/idMappings.js")
     script(src="/js/script.js")
+    script(src="https://cdn.socket.io/4.3.2/socket.io.min.js" integrity="sha384-KAZ4DtjNhLChOB/hxXuKqhMLYvx3b5MlT55xPEiNmREKRzeEm+RVPlTnAn0ajQNs" crossorigin="anonymous")
 
   body(onload='selectBoxes()')
     nav.navbar.navbar-expand-sm.navbar-light.bg-primary
@@ -31,3 +32,6 @@ html
           .row.py-3
             .col-md-9
               p.text-white= appName
+
+    script.
+      var socket = io()

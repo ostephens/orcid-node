@@ -9,6 +9,7 @@ const cache = apicache.middleware
 const app = express();
 const bodyParser = require('body-parser');
 const Queue = require('smart-request-balancer');
+const { Server } = require("socket.io");
 
 const orcidQueryTools = require('./orcidQueryTools.js')
 let orcidAPIBase = 'https://pub.orcid.org',
@@ -51,6 +52,12 @@ const server = app.listen(process.env.PORT || 4000, function () {
 })
 server.keepAliveTimeout = 6000 * 1000;
 server.headersTimeout = 6000 * 1000;
+
+const io = new Server(server);
+
+io.on('connection', (socket) => {
+  console.log('a user connected');
+});
 
 app.get('/', cache('2 hours'), function (req, res) {
   const paramKeys = []
