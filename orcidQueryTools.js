@@ -94,7 +94,7 @@ const getEmployments = function (orcidJson) {
       startYear+" -> "+endYear)
     });
   });
-  return employments;
+  return employments.join(";");
 }
 
 const getEducations = function (orcidJson) {
@@ -122,7 +122,7 @@ const getEducations = function (orcidJson) {
       startYear+" -> "+endYear)
     });
   });
-  return educations;
+  return educations.join(";");
 }
 
 const getEmails = function (orcidJson) {
@@ -133,7 +133,7 @@ const getEmails = function (orcidJson) {
       emails.push(getNested(em, "email"));
     });
   }
-  return emails;
+  return emails.join(";");
 }
 
 const getIds = function (orcidJson) {
@@ -144,7 +144,7 @@ const getIds = function (orcidJson) {
       ids.push(getNested(id, "external-id-type") + ": "+getNested(id, "external-id-value"));
     });
   }
-  return ids;
+  return ids.join(";");
 }
 
 const getWorkCount = function (orcidJson) {
