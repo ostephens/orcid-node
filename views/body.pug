@@ -11,50 +11,57 @@ block queryForm
       input(type="submit" value="Get ORCIDs")
 
 block results
-  -var maxPages = Math.min(parseInt(numberOfPages),10000/parseInt(perPage)+1)
-  -var maxDownload = 10000
-  if organizationIdentifiers
-    -var name = decodeURIComponent(JSON.parse(organizationIdentifiers).name)
-    -var ror = JSON.parse(organizationIdentifiers).ror
-    -var grid = JSON.parse(organizationIdentifiers).grid
-    -var ringgold = JSON.parse(organizationIdentifiers).ringgold
-    -var domains = JSON.parse(organizationIdentifiers).domains
-    -var csvlink = "./download/?organizationIdentifiers="+organizationIdentifiers
-    div
-      h4= "Found " + itemCount + " ORCIDs affiliated with " + name + " using the identifiers: "
-      div.text-muted= "ROR: " + ror
-      div.text-muted= "GRID: " + grid
-      div.text-muted= "Ringgold: " + ringgold
-      div.text-muted= "Email domains: " + domains
-  if itemCount > 0
-    div
-      if itemCount > 10000
-        -const maxItems = 10000+parseInt(perPage)
-        p= "Due to the limit on the public API, we are only able to display " + maxItems.toString() + " ORCIDs only (That's " + maxPages.toString() + " pages)"
-        if perPage < 1000
-          p Increasing the perPage parameter to 1000 will display the maximum number of items based on the ORCID public API (11000)
-      if itemCount > maxDownload
-        p= "Unfortunately due to limitations of the ORCID public API we cannot offer a CSV download for results sets greater than " + maxDownload
-      else
-        div
-          a(href=`${csvlink}`)= "Download CSV (the estimated time to generate the download is "+Math.ceil(itemCount/10/60)+" minutes)"
-          div.spinner-border.text-primary.invisible(role="status" id="csvdownloadSpinner")
-            span.visually-hidden Downloading now...
-    #resultsTable.container
-      +pagination(5, maxPages, 5, currentPage, `?${urlQuery}&currentPage=`)
-      table.table.table-striped
+  div.row
+    -var maxPages = Math.min(parseInt(numberOfPages),10000/parseInt(perPage)+1)
+    -var maxDownload = 10000
+    if organizationIdentifiers
+      -var name = decodeURIComponent(JSON.parse(organizationIdentifiers).name)
+      -var ror = JSON.parse(organizationIdentifiers).ror
+      -var grid = JSON.parse(organizationIdentifiers).grid
+      -var ringgold = JSON.parse(organizationIdentifiers).ringgold
+      -var domains = JSON.parse(organizationIdentifiers).domains
+      -var csvFulllink = "./download/full/?organizationIdentifiers="+organizationIdentifiers
+      -var csvBrieflink = "./download/brief/?organizationIdentifiers="+organizationIdentifiers
+      div.col
+        h4= "Found " + itemCount + " ORCIDs affiliated with " + name + " using the identifiers: "
+        div.text-muted= "ROR: " + ror
+        div.text-muted= "GRID: " + grid
+        div.text-muted= "Ringgold: " + ringgold
+        div.text-muted= "Email domains: " + domains
+    if itemCount > 0
+      div.col
+        if itemCount > 10000
+          -const maxItems = 10000+parseInt(perPage)
+          p= "Due to the limit on the public API, we are only able to display " + maxItems.toString() + " ORCIDs only (That's " + maxPages.toString() + " pages)"
+          if perPage < 1000
+            p Increasing the perPage parameter to 1000 will display the maximum number of items based on the ORCID public API (11000)
+        if itemCount > maxDownload
+          p= "Unfortunately due to limitations of the ORCID public API we cannot offer a CSV download for results sets greater than " + maxDownload
+        else
+          div
+            a(href=`${csvBrieflink}`)= "Download brief information as CSV"
+            div Contains all the information in the table below
+          div
+            a(href=`${csvFulllink}`)= "Download fuller information as CSV"
+            span.spinner-border.text-primary.invisible(role="status" id="csvdownloadSpinner")
+              span.visually-hidden Downloading now...
+            p= "(the estimated time to generate the download is "+Math.ceil(itemCount/10/60)+" minutes)"
+            div Includes ORCID, date record last updated, name, all known education affilations, all known employment affiliations, SCOPUS and other IDs, list of known emails, number of works listed on the ORCiD record)
+  #resultsTable.container
+    +pagination(5, maxPages, 5, currentPage, `?${urlQuery}&currentPage=`)
+    table.table.table-striped
+      tr
+        th ORCID
+        th Name
+        th Current affiliations
+        th Past affiliations
+        th Email
+      each orcid, index in orcids
         tr
-          th ORCID
-          th Name
-          th Current affiliations
-          th Past affiliations
-          th Email
-        each orcid, index in orcids
-          tr
-            td= orcid.orcid
-            td= orcid['given-names'] + " " + orcid['family-name']
-            td!= orcid['current-institution-affiliation-name'].split(",").join(";<br />")
-            td!= orcid['past-institution-affiliation-name'].split(",").join(";<br />")
-            td!= orcid.email.split(",").join(";<br />")
+          td= orcid.orcid
+          td= orcid['given-names'] + " " + orcid['family-name']
+          td!= orcid['current-institution-affiliation-name'].split(",").join(";<br />")
+          td!= orcid['past-institution-affiliation-name'].split(",").join(";<br />")
+          td!= orcid.email.split(",").join(";<br />")
 
-      +pagination(5, maxPages, 5, currentPage, `?${urlQuery}&currentPage=`)
+    +pagination(5, maxPages, 5, currentPage, `?${urlQuery}&currentPage=`)
