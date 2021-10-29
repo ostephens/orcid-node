@@ -124,7 +124,7 @@ app.get('/', cache('2 hours'), function (req, res) {
 
       let t = 'csv';
       orcidsListFetches.push(
-        queueRequest(remoteAPIQueue,setOptions(u,t),query+start+rows+sortOptions)
+        queueRequest(remoteAPIQueue,setOptions(u,t))
          .then(response => {
            return response.data;
          })
@@ -172,7 +172,71 @@ app.get('/', cache('2 hours'), function (req, res) {
   }
 })
 
-app.get('/download', cache('0 hours'), function(req, res) {
+app.get('/download/brief', cache('0 hours'), function (req, res) {
+  let query = orcidQueryTools.buildOrcidQuery(req)
+  //Find out how many we need to get
+  let u = orcidQueryTools.buildOrcidAPIUrl(orcidAPIBase,orcidAPIVersion,orcidAPIType)+
+      '/?q='+ query +
+      '&rows='+0;
+  if (query.length > 0) {
+    let t = 'json'
+    let r = 1000;
+    lastRec = 0;
+    let n = 0;
+
+    queueRequest(remoteAPIQueue,setOptions(u,t))
+    .then(response => {
+      return response.data;
+    })
+    .then(info => {
+      //setup stream back to browser
+      res.header('Content-Type', 'text/csv');
+      res.attachment("id2-csv-brief-export.csv");
+      let csvHeaders = papa.unparse({
+                                	"fields": ["orcid","given-names","family-name",
+                                              "current-institution-affiliation-name",
+                                              "past-institution-affiliation-name","email"]
+                                });
+      res.write(csvHeaders+"\r\n");
+      //pageSize = 1000
+      n = info["num-found"];
+      console.log("Query found " + n + " ORCiD IDs");
+      let queryUrl = orcidQueryTools.buildOrcidAPIUrl(orcidAPIBase,orcidAPIVersion,'csv-search')+
+               '/?q=' + query +
+               '&fl=orcid,given-names,family-name,current-institution-affiliation-name,past-institution-affiliation-name,email'
+      let urls = orcidQueryTools.generateBriefCSVDownloadURLs(queryUrl,n,r);
+      let t = 'csv';
+      let csvListFetches = []
+      urls.forEach( u => {
+        csvListFetches.push(
+          queueRequest(remoteAPIQueue,setOptions(u,t))
+           .then(response => {
+             return response.data;
+           })
+           .then(body => {
+             res.write(body.substring(body.indexOf("\n") + 1))
+           })
+           .catch((error) => {
+             console.error('Error:', error);
+           })
+        );
+      });
+      Promise.all(csvListFetches).then(() => {
+        res.end()
+      }).catch((error) => {
+        console.error('Error:', error);
+      });
+
+      //Work out the number of csv searches we need
+      //create array of csv searches and stream each one to output
+      //when all done, we're done - end the stream...
+    }).catch((error) => {
+      console.error('Error:', error);
+    });
+  }
+});
+
+app.get('/download/full', cache('0 hours'), function(req, res) {
   sendMessage({downloading: true});
   res.type('text/csv');
   query = orcidQueryTools.buildOrcidQuery(req)
@@ -202,7 +266,7 @@ app.get('/download', cache('0 hours'), function(req, res) {
     })
     .then(searchResult => {
       res.header('Content-Type', 'text/csv');
-      res.attachment("id2-csv-export.csv");
+      res.attachment("id2-csv-full-export.csv");
       csvHeaders = papa.unparse({
                                 	"fields": ["orcid","lastUpdated","name",
                                               "educations","employments","ids",

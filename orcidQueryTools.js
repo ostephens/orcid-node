@@ -2,6 +2,19 @@ const buildOrcidAPIUrl = function(base,version,type) {
   return base + '/' + version + '/' + type
 }
 
+const generateBriefCSVDownloadURLs = function(queryUrl,totalOrcids,pageSize) {
+  let urls = []
+  for(let i = 0; i < totalOrcids; i += pageSize) {
+    let u =  queryUrl +
+             '&start=' + i +
+             '&rows=' + pageSize +
+             '&sort=' + 'orcid%20asc';
+    urls.push(u);
+  }
+  //console.log(urls);
+  return urls;
+}
+
 const buildOrcidQuery = function(req) {
   queryparts = [];
   if (typeof req.query.organizationIdentifiers !== "undefined" && req.query.organizationIdentifiers.length > 0) {
@@ -160,5 +173,15 @@ getNested = function(obj, ...args) {
 }
 
 module.exports ={
-  buildOrcidAPIUrl,buildOrcidQuery,getOrcidId,getLastUpdated,getName,getEmployments,getEducations,getEmails,getIds,getWorkCount
-}
+                  buildOrcidAPIUrl,
+                  generateBriefCSVDownloadURLs,
+                  buildOrcidQuery,
+                  getOrcidId,
+                  getLastUpdated,
+                  getName,
+                  getEmployments,
+                  getEducations,
+                  getEmails,
+                  getIds,
+                  getWorkCount
+                }
