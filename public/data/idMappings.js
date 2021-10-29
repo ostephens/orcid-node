@@ -757,7 +757,7 @@ const idMappings = [
     },
     {
       name: "University of Chester",
-      domains: "www1.chester.ac.uk|chester.ac.uk",
+      domains: "chester.ac.uk",
       grid: "grid.43710.31",
       ror: "https://ror.org/01drpwb22",
       ringgold: "11965"
@@ -897,7 +897,7 @@ const idMappings = [
     },
     {
       name: "University of Liverpool",
-      domains: "liv.ac.uk",
+      domains: "liv.ac.uk|liverpool.ac.uk",
       grid: "grid.10025.36",
       ror: "https://ror.org/04xs57h96",
       ringgold: "4591"
