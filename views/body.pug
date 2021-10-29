@@ -14,7 +14,7 @@ block results
   -var maxPages = Math.min(parseInt(numberOfPages),10000/parseInt(perPage)+1)
   -var maxDownload = 10000
   if organizationIdentifiers
-    -var name = JSON.parse(organizationIdentifiers).name
+    -var name = decodeURIComponent(JSON.parse(organizationIdentifiers).name)
     -var ror = JSON.parse(organizationIdentifiers).ror
     -var grid = JSON.parse(organizationIdentifiers).grid
     -var ringgold = JSON.parse(organizationIdentifiers).ringgold

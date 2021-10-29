@@ -24,13 +24,13 @@ function selectBoxes() {
           let idList = {
             ror: item.id,
             grid: item.external_ids.GRID.preferred,
-            name: item.name
+            name: encodeURIComponent(item.name)
           }
           let idMapping = idMappings.find(inst => inst.ror === item.id);
           if(idMapping != undefined) {
             idList.ringgold = idMapping.ringgold
             idList.domains = idMapping.domains
-            idList.name = item.name
+            idList.name = encodeURIComponent(item.name)
           }
           let i = {
             id: item.id,
