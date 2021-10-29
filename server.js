@@ -236,6 +236,12 @@ app.get('/download', cache('0 hours'), function(req, res) {
           // let orcid = orcidsList[i].path;
           let u = orcidsList[i].uri;
           let t = 'json';
+          let includeHeader = false
+          if(i===0) {
+            includeHeader = true
+          }
+          console.log(i)
+          console.log(includeHeader)
           orcidJsonPromises.push(
             queueRequest(remoteAPIQueue,setOptions(u,t))
             .then(response => {
@@ -243,6 +249,7 @@ app.get('/download', cache('0 hours'), function(req, res) {
             })
             .then(orcidJson => {
              listFullOrcidRecords.push(orcidJson);
+
              const csv = papa.unparse([{
                orcid: orcidQueryTools.getOrcidId(orcidJson),
                lastUpdated: orcidQueryTools.getLastUpdated(orcidJson),
@@ -252,8 +259,8 @@ app.get('/download', cache('0 hours'), function(req, res) {
                ids: orcidQueryTools.getIds(orcidJson),
                emails: orcidQueryTools.getEmails(orcidJson),
                workCount: orcidQueryTools.getWorkCount(orcidJson)
-             }])
-             res.write(csv);
+             }],{header: includeHeader})
+             res.write(csv+"\r\n");
             })
             .catch((error) => {
              console.error('Error:', error);
