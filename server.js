@@ -240,8 +240,6 @@ app.get('/download', cache('0 hours'), function(req, res) {
           if(i===0) {
             includeHeader = true
           }
-          console.log(i)
-          console.log(includeHeader)
           orcidJsonPromises.push(
             queueRequest(remoteAPIQueue,setOptions(u,t))
             .then(response => {
