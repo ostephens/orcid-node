@@ -54,10 +54,19 @@ server.keepAliveTimeout = 6000 * 1000;
 server.headersTimeout = 6000 * 1000;
 
 const io = new Server(server);
+const clientMessages = io.on('connection', (socket) => {
+                            console.log('Received connection from user');
+                            socket.emit('message', 'Connection started.');
+                      });
 
-io.on('connection', (socket) => {
-  console.log('a user connected');
-});
+const sendMessage = function(msg) {
+  console.log("trying to sendMessage");
+  console.log(clientMessages.connected);
+  if (clientMessages) {
+    console.log('sending message to all');
+    clientMessages.emit('message', msg);
+  }
+};
 
 app.get('/', cache('2 hours'), function (req, res) {
   const paramKeys = []
@@ -164,6 +173,7 @@ app.get('/', cache('2 hours'), function (req, res) {
 })
 
 app.get('/download', cache('0 hours'), function(req, res) {
+  sendMessage({downloading: true});
   res.type('text/csv');
   query = orcidQueryTools.buildOrcidQuery(req)
   if (query.length > 0) {
@@ -255,6 +265,7 @@ app.get('/download', cache('0 hours'), function(req, res) {
       }).then(orcidJsonPromises => {
          Promise.all(orcidJsonPromises).then(() => {
            res.end()
+           sendMessage({downloading: false});
           }).catch((error) => {
             console.error('Error:', error);
           });

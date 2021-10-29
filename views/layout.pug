@@ -35,3 +35,8 @@ html
 
     script.
       var socket = io()
+      socket.on('message', function(data){
+         console.log(data.downloading);
+        //in here see if we've got "true" or "false" in message
+        //change visibility of csvDownloadSpinner as a result
+      });
