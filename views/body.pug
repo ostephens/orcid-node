@@ -20,16 +20,13 @@ block results
     -var ringgold = JSON.parse(organizationIdentifiers).ringgold
     -var domains = JSON.parse(organizationIdentifiers).domains
     -var csvlink = "./download/?organizationIdentifiers="+organizationIdentifiers
-  if itemCount < 1
-    div.d-inline-flex.p-2
-      h3= "Please enter an institution and click \"Get ORCIDs\" to find results"
-  else
     div
       h4= "Found " + itemCount + " ORCIDs affiliated with " + name + " using the identifiers: "
       div.text-muted= "ROR: " + ror
       div.text-muted= "GRID: " + grid
       div.text-muted= "Ringgold: " + ringgold
       div.text-muted= "Email domains: " + domains
+  if itemCount > 0
     div
       if itemCount > 10000
         -const maxItems = 10000+parseInt(perPage)
@@ -41,6 +38,8 @@ block results
       else
         div
           a(href=`${csvlink}`)= "Download CSV (the estimated time to generate the download is "+Math.ceil(itemCount/10/60)+" minutes)"
+          div.spinner-border.text-primary.invisible(role="status" id="csvdownloadSpinner")
+            span.visually-hidden Downloading now...
     #resultsTable.container
       +pagination(5, maxPages, 5, currentPage, `?${urlQuery}&currentPage=`)
       table.table.table-striped
