@@ -8,7 +8,7 @@ block queryForm
     fieldset
       select(id='ror-api',name='organizationIdentifiers',placeholder='Start typing an institution name...')
       input(type='hidden', id='currentPage', name='currentPage', value='1')
-      input(type="submit" value="Get ORCiDs")
+      input(type="submit" value="Get ORCIDs")
 
 block results
   -var maxPages = Math.min(parseInt(numberOfPages),10000/parseInt(perPage)+1)
