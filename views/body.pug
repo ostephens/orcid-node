@@ -13,7 +13,7 @@ block queryForm
 block results
   div.row
     -var maxPages = Math.min(parseInt(numberOfPages),10000/parseInt(perPage)+1)
-    -var maxDownload = 10000
+    -var maxDownload = 22000
     if organizationIdentifiers
       -var name = decodeURIComponent(JSON.parse(organizationIdentifiers).name)
       -var ror = JSON.parse(organizationIdentifiers).ror
@@ -32,21 +32,25 @@ block results
         div.col
           if itemCount > 10000
             -const maxItems = 10000+parseInt(perPage)
-            p= "Due to the limit on the public API, we are only able to display " + maxItems.toString() + " ORCIDs only (That's " + maxPages.toString() + " pages)"
+            p= "Due to limitations of the ORCID public API we are only able to display " + maxItems.toString() + " ORCIDs only."
             if perPage < 1000
               p Increasing the perPage parameter to 1000 will display the maximum number of items based on the ORCID public API (11000)
           if itemCount > maxDownload
-            p= "Unfortunately due to limitations of the ORCID public API we cannot offer a CSV download for results sets greater than " + maxDownload
+            p= "Due to limitations of the ORCID public API we cannot offer a CSV download for results sets greater than " + maxDownload
           else
             div
               a(href=`${csvBrieflink}`)= "Download brief information as CSV"
               div Contains all the information in the table below
-            div
-              a(href=`${csvFulllink}`)= "Download fuller information as CSV"
-              span.spinner-border.text-primary.invisible(role="status" id="csvdownloadSpinner")
-                span.visually-hidden Downloading now...
-              p= "(the estimated time to generate the download is "+Math.ceil(itemCount/10/60)+" minutes)"
-              div Includes ORCID, date record last updated, name, all known education affilations, all known employment affiliations, SCOPUS and other IDs, list of known emails, number of works listed on the ORCiD record
+            if itemCount > 1000
+              div
+                p= "Due to limitations of the ORCID public API we cannot offer a CSV download of fuller information for results sets greater than 11000."
+            else
+              div
+                a(href=`${csvFulllink}`)= "Download fuller information as CSV"
+                span.spinner-border.text-primary.invisible(role="status" id="csvdownloadSpinner")
+                  span.visually-hidden Downloading now...
+                p= "(the estimated time to generate the download is "+Math.ceil(itemCount/10/60)+" minutes)"
+                div Includes ORCID, date record last updated, name, all known education affilations, all known employment affiliations, SCOPUS and other IDs, list of known emails, number of works listed on the ORCiD record
   #resultsTable.container
     if itemCount > 0
       +pagination(5, maxPages, 5, currentPage, `?${urlQuery}&currentPage=`)

@@ -201,10 +201,7 @@ app.get('/download/brief', cache('0 hours'), function (req, res) {
       //pageSize = 1000
       n = info["num-found"];
       console.log("Query found " + n + " ORCiD IDs");
-      let queryUrl = orcidQueryTools.buildOrcidAPIUrl(orcidAPIBase,orcidAPIVersion,'csv-search')+
-               '/?q=' + query +
-               '&fl=orcid,given-names,family-name,current-institution-affiliation-name,past-institution-affiliation-name,email'
-      let urls = orcidQueryTools.generateBriefCSVDownloadURLs(queryUrl,n,r);
+      let urls = orcidQueryTools.generateBriefDownloadURLs(orcidAPIBase,orcidAPIVersion,'csv-search',query,n,r);
       let t = 'csv';
       let csvListFetches = []
       urls.forEach( u => {

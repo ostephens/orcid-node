@@ -2,16 +2,38 @@ const buildOrcidAPIUrl = function(base,version,type) {
   return base + '/' + version + '/' + type
 }
 
-const generateBriefCSVDownloadURLs = function(queryUrl,totalOrcids,pageSize) {
+const generateBriefDownloadURLs = function(base,version,type,query,totalOrcids,pageSize) {
+  let baseUrl = buildOrcidAPIUrl(base,version,type)
+  let queryUrl = baseUrl+
+                 '/?q=' + query;
+  if (type === 'csv-search') {
+    queryUrl = queryUrl +
+               '&fl=orcid,given-names,family-name,current-institution-affiliation-name,past-institution-affiliation-name,email'
+  }
   let urls = []
-  for(let i = 0; i < totalOrcids; i += pageSize) {
+  let remainingOrcids = totalOrcids
+  let sortOptions = 'orcid%20asc'
+  for(let i = 0; remainingOrcids > 0 && totalOrcids < 22000; i += pageSize) {
+    console.log("Outputting start, pageSize, total and remaining")
+    console.log(i)
+    console.log(pageSize)
+    console.log(totalOrcids)
+    console.log(remainingOrcids)
+    if(i >= 11000) {
+      sortOptions = "orcid%20desc";
+      i = 0;
+    }
+    if(remainingOrcids <= pageSize) {
+      pageSize = remainingOrcids
+    }
     let u =  queryUrl +
              '&start=' + i +
              '&rows=' + pageSize +
-             '&sort=' + 'orcid%20asc';
+             '&sort=' + sortOptions;
     urls.push(u);
+    remainingOrcids -= pageSize;
   }
-  //console.log(urls);
+  console.log(urls);
   return urls;
 }
 
@@ -174,7 +196,7 @@ getNested = function(obj, ...args) {
 
 module.exports ={
                   buildOrcidAPIUrl,
-                  generateBriefCSVDownloadURLs,
+                  generateBriefDownloadURLs,
                   buildOrcidQuery,
                   getOrcidId,
                   getLastUpdated,
