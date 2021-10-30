@@ -2,7 +2,7 @@ const buildOrcidAPIUrl = function(base,version,type) {
   return base + '/' + version + '/' + type
 }
 
-const generateBriefDownloadURLs = function(base,version,type,query,totalOrcids,pageSize) {
+const generateBriefDownloadURLs = function(base,version,type,query,totalOrcids,pageSize=1000) {
   let baseUrl = buildOrcidAPIUrl(base,version,type)
   let queryUrl = baseUrl+
                  '/?q=' + query;
@@ -14,11 +14,6 @@ const generateBriefDownloadURLs = function(base,version,type,query,totalOrcids,p
   let remainingOrcids = totalOrcids
   let sortOptions = 'orcid%20asc'
   for(let i = 0; remainingOrcids > 0 && totalOrcids < 22000; i += pageSize) {
-    console.log("Outputting start, pageSize, total and remaining")
-    console.log(i)
-    console.log(pageSize)
-    console.log(totalOrcids)
-    console.log(remainingOrcids)
     if(i >= 11000) {
       sortOptions = "orcid%20desc";
       i = 0;
@@ -33,6 +28,7 @@ const generateBriefDownloadURLs = function(base,version,type,query,totalOrcids,p
     urls.push(u);
     remainingOrcids -= pageSize;
   }
+  console.log("List of URLs generated for brief records...")
   console.log(urls);
   return urls;
 }

@@ -61,7 +61,6 @@ const clientMessages = io.on('connection', (socket) => {
 
 const sendMessage = function(msg) {
   console.log("trying to sendMessage");
-  console.log(clientMessages.connected);
   if (clientMessages) {
     console.log('sending message to all');
     clientMessages.emit('message', msg);
@@ -180,7 +179,7 @@ app.get('/download/brief', cache('0 hours'), function (req, res) {
       '&rows='+0;
   if (query.length > 0) {
     let t = 'json'
-    let r = 1000;
+    let r = 0;
     lastRec = 0;
     let n = 0;
 
@@ -201,7 +200,7 @@ app.get('/download/brief', cache('0 hours'), function (req, res) {
       //pageSize = 1000
       n = info["num-found"];
       console.log("Query found " + n + " ORCiD IDs");
-      let urls = orcidQueryTools.generateBriefDownloadURLs(orcidAPIBase,orcidAPIVersion,'csv-search',query,n,r);
+      let urls = orcidQueryTools.generateBriefDownloadURLs(orcidAPIBase,orcidAPIVersion,'csv-search',query,n);
       let t = 'csv';
       let csvListFetches = []
       urls.forEach( u => {
@@ -270,16 +269,10 @@ app.get('/download/full', cache('0 hours'), function(req, res) {
                                               "emails","workCount"]
                                 });
       res.write(csvHeaders+"\r\n");
-      pageSize = 1000
       n = searchResult["num-found"];
       console.log("Query found " + n + " ORCiD IDs");
-      numberPages = Math.ceil(n/pageSize);
-      //console.log("With a page size of ", pageSize, " that is ", numberPages, " pages.")
-      for(i = 1; i-1 < numberPages; i++) {
-        let u = orcidQueryTools.buildOrcidAPIUrl(orcidAPIBase,orcidAPIVersion,orcidAPIType) +
-              '/?q=' + query +
-              '&start=' + lastRec +
-              '&rows=' + pageSize;
+      let urls = orcidQueryTools.generateBriefDownloadURLs(orcidAPIBase,orcidAPIVersion,orcidAPIType,query,n);
+      urls.forEach( u => {
         let t = 'json'
         fetchList.push(
           queueRequest(remoteAPIQueue,setOptions(u,t))
@@ -295,8 +288,7 @@ app.get('/download/full', cache('0 hours'), function(req, res) {
             console.error('Error:', error);
           })
           );
-        lastRec = lastRec+pageSize;
-      }
+      });
       console.log("Number of fetches:" + fetchList.length);
       Promise.all(fetchList).then(() => {
         for(let i = 0; i < orcidsList.length; i++) {
