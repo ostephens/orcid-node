@@ -25,14 +25,24 @@ let lastRec = 0,
 
 const remoteAPIQueue = new Queue({
   rules: {
-    common: {
+    default: {
       rate: 10,
+      limit: 1
+    },
+    webDisplay: {
+      rate: 20,
       limit: 1,
       priority: 1
     },
-    default: {
+    briefDownload: {
+      rate: 15,
+      limit: 1,
+      priority: 2
+    },
+    fullDownload: {
       rate: 10,
       limit: 1,
+      priority: 3
     },
     overall: {
       rate: 10,
@@ -104,7 +114,7 @@ app.get('/', cache('2 hours'), function (req, res) {
     let orcidsList = [];
     let orcidsListFetches = [];
 
-    queueRequest(remoteAPIQueue,setOptions(u,t))
+    queueRequest(remoteAPIQueue,setOptions(u,t),'webDisplay')
     .then(response => {
       return response.data;
     })
@@ -123,7 +133,7 @@ app.get('/', cache('2 hours'), function (req, res) {
 
       let t = 'csv';
       orcidsListFetches.push(
-        queueRequest(remoteAPIQueue,setOptions(u,t))
+        queueRequest(remoteAPIQueue,setOptions(u,t),'webDisplay')
          .then(response => {
            return response.data;
          })
@@ -183,7 +193,7 @@ app.get('/download/brief', cache('0 hours'), function (req, res) {
     lastRec = 0;
     let n = 0;
 
-    queueRequest(remoteAPIQueue,setOptions(u,t))
+    queueRequest(remoteAPIQueue,setOptions(u,t),'briefDownload')
     .then(response => {
       return response.data;
     })
@@ -256,7 +266,7 @@ app.get('/download/full', cache('0 hours'), function(req, res) {
     let orcidJsonPromises = [];
     let listFullOrcidRecords = [];
 
-    queueRequest(remoteAPIQueue,setOptions(u,t))
+    queueRequest(remoteAPIQueue,setOptions(u,t),'fullDownload')
     .then(response => {
       return response.data
     })
@@ -275,7 +285,7 @@ app.get('/download/full', cache('0 hours'), function(req, res) {
       urls.forEach( u => {
         let t = 'json'
         fetchList.push(
-          queueRequest(remoteAPIQueue,setOptions(u,t))
+          queueRequest(remoteAPIQueue,setOptions(u,t),'fullDownload')
           .then(response => {
             return response.data;
           })
@@ -297,7 +307,7 @@ app.get('/download/full', cache('0 hours'), function(req, res) {
           let t = 'json';
           let includeHeader = false
           orcidJsonPromises.push(
-            queueRequest(remoteAPIQueue,setOptions(u,t))
+            queueRequest(remoteAPIQueue,setOptions(u,t),'fullDownload')
             .then(response => {
              return response.data;
             })
@@ -404,7 +414,7 @@ function setOptions(url, responseFormat) {
   return options;
 }
 
-function queueRequest(queue, options) {
+function queueRequest(queue, options, rule='default') {
   const u = options.url
   const h = options.headers
   return queue.request((retry) => axios.get(u, {headers: h})
@@ -426,5 +436,5 @@ function queueRequest(queue, options) {
         return retry(retry_after)
       }
       throw error;
-    }), 'a4a442ba-5cd5-470a-b65c-81202a088a32')
+    }), 'a4a442ba-5cd5-470a-b65c-81202a088a32',rule)
 }
