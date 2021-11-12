@@ -228,7 +228,15 @@ app.get('/download/brief', cache('0 hours'), function (req, res) {
 });
 
 app.get('/download/full', cache('0 hours'), function(req, res) {
-  res.type('text/csv');
+  let responseFormat = "csv";
+  if (req.query.format === "json") {
+    responseFormat = "json";
+  }
+  if(responseFormat === "json") {
+    res.type('application/json');
+  } else {
+    res.type('text/csv');
+  }
   query = orcidQueryTools.buildOrcidQuery(req)
   if (query.length > 0) {
     r = 0
@@ -255,14 +263,19 @@ app.get('/download/full', cache('0 hours'), function(req, res) {
       return response.data
     })
     .then(searchResult => {
-      res.header('Content-Type', 'text/csv');
-      res.attachment("id2-csv-full-export.csv");
-      csvHeaders = papa.unparse({
-                                	"fields": ["orcid","lastUpdated","name",
-                                              "educations","employments","ids",
-                                              "emails","workCount"]
-                                });
-      res.write(csvHeaders+"\r\n");
+      if(responseFormat==="json") {
+        res.header('Content-Type', 'application/json');
+        res.write("[");
+      } else {
+        res.header('Content-Type', 'text/csv');
+        res.attachment("id2-csv-full-export.csv");
+        csvHeaders = papa.unparse({
+                                  	"fields": ["orcid","lastUpdated","name",
+                                                "educations","employments","ids",
+                                                "emails","workCount"]
+                                  });
+        res.write(csvHeaders+"\r\n");
+      }
       n = searchResult["num-found"];
       console.log("Query found " + n + " ORCiD IDs");
       let urls = orcidQueryTools.generateBriefDownloadURLs(orcidAPIBase,orcidAPIVersion,orcidAPIType,query,n);
@@ -297,18 +310,21 @@ app.get('/download/full', cache('0 hours'), function(req, res) {
             })
             .then(orcidJson => {
              listFullOrcidRecords.push(orcidJson);
-
-             const csv = papa.unparse([{
-               orcid: orcidQueryTools.getOrcidId(orcidJson),
-               lastUpdated: orcidQueryTools.getLastUpdated(orcidJson),
-               name: orcidQueryTools.getName(orcidJson),
-               educations: orcidQueryTools.getEducations(orcidJson),
-               employments: orcidQueryTools.getEmployments(orcidJson),
-               ids: orcidQueryTools.getIds(orcidJson),
-               emails: orcidQueryTools.getEmails(orcidJson),
-               workCount: orcidQueryTools.getWorkCount(orcidJson)
-             }],{header: includeHeader})
-             res.write(csv+"\r\n");
+             if(responseFormat === "json") {
+               res.write(JSON.stringify(orcidJson)+",");
+             } else {
+               const csv = papa.unparse([{
+                 orcid: orcidQueryTools.getOrcidId(orcidJson),
+                 lastUpdated: orcidQueryTools.getLastUpdated(orcidJson),
+                 name: orcidQueryTools.getName(orcidJson),
+                 educations: orcidQueryTools.getEducations(orcidJson),
+                 employments: orcidQueryTools.getEmployments(orcidJson),
+                 ids: orcidQueryTools.getIds(orcidJson),
+                 emails: orcidQueryTools.getEmails(orcidJson),
+                 workCount: orcidQueryTools.getWorkCount(orcidJson)
+               }],{header: includeHeader})
+               res.write(csv+"\r\n");
+            }
             })
             .catch((error) => {
              console.error('Error:', error);
@@ -319,6 +335,9 @@ app.get('/download/full', cache('0 hours'), function(req, res) {
          return orcidJsonPromises;
       }).then(orcidJsonPromises => {
          Promise.all(orcidJsonPromises).then(() => {
+           if(responseFormat === "json") {
+             res.write("{}]");
+           }
            res.end()
           }).catch((error) => {
             console.error('Error:', error);
