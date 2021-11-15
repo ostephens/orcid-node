@@ -29,12 +29,12 @@ const remoteAPIQueue = new Queue({
       limit: 1
     },
     webDisplay: {
-      rate: 20,
+      rate: 10,
       limit: 1,
       priority: 1
     },
     briefDownload: {
-      rate: 15,
+      rate: 10,
       limit: 1,
       priority: 2
     },
@@ -166,6 +166,10 @@ app.get('/', cache('2 hours'), function (req, res) {
   }
 })
 
+app.get('/about', cache(), function (req, res) {
+  res.render("about")
+});
+
 app.get('/download/brief', cache('0 hours'), function (req, res) {
   let query = orcidQueryTools.buildOrcidQuery(req)
   //Find out how many we need to get
@@ -227,7 +231,7 @@ app.get('/download/brief', cache('0 hours'), function (req, res) {
   }
 });
 
-app.get('/download/full', cache('0 hours'), function(req, res) {
+app.get('/download/full', cache('24 hours'), function(req, res) {
   let responseFormat = "csv";
   if (req.query.format === "json") {
     responseFormat = "json";
