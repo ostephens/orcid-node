@@ -18,12 +18,14 @@ html
           .row.py-3
             .col-md-9
               a.navbar-brand(href='/').text-white= appName
+      ul.navbar-nav
+        li.nav-item
+          a.nav-link(href='/').text-white Home
+        li.nav-item
+          a.nav-link(href='/about').text-white About
 
     #content.container
-      #query.container
-        block queryForm
-      #results.container
-        block results
+      block content
 
     footer.mt-5
       .container-fluid.bg-primary.py-3

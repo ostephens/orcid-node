@@ -11,6 +11,11 @@ function selectRegion() {
 
 function selectBoxes() {
   new TomSelect('#ror-api',{
+  plugins: {
+		remove_button:{
+			title:'Remove this item'
+		}
+	},
   valueField: 'idList',
   labelField: 'name',
   searchField: 'name',
@@ -47,15 +52,18 @@ function selectBoxes() {
     },
   render: {
     item: function(item, escape) {
-  				return `<div>
-                  <span class="h4">
-  									${ escape(item.name) }
-  								</span>
-  								<div class="text-muted">ROR: ${ JSON.parse(item.idList).ror }</div>
-                  <div class="text-muted">GRID: ${ JSON.parse(item.idList).grid }</div>
-                  <div class="text-muted">Ringgold: ${ JSON.parse(item.idList).ringgold }</div>
-                  <div class="text-muted">Email domains: ${ JSON.parse(item.idList).domains }</div>
-    						</div>`;
+  				return `<div class="py-2 d-flex bg-light">
+                    <div class="mb-1">
+                      <span class="h4">
+      									${ escape(item.name) }
+      								</span>
+      								<div class="text-muted">ROR: ${ JSON.parse(item.idList).ror }</div>
+                      <div class="text-muted">GRID: ${ JSON.parse(item.idList).grid }</div>
+                      <div class="text-muted">Ringgold: ${ JSON.parse(item.idList).ringgold }</div>
+                      <div class="text-muted">Email domains: ${ JSON.parse(item.idList).domains }</div>
+      						</div>
+                </div>`
+                ;
   			}
   }
   });

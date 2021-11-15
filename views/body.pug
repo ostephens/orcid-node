@@ -2,72 +2,74 @@ extends layout
 
 include ./mixins/pagination.pug
 
-block queryForm
-  p= "Enter the organization name, select the appropriate organization, then click 'Submit' to search for all affiliated ORCIDs available for public view"
-  form(action="/" method="get")
-    fieldset
-      select(id='ror-api',name='organizationIdentifiers',placeholder='Start typing an institution name...')
-      input(type='hidden', id='currentPage', name='currentPage', value='1')
-      input(type="submit" value="Get ORCIDs")
+block content
 
-block results
-  div.row
-    -var maxPages = Math.min(parseInt(numberOfPages),10000/parseInt(perPage)+1)
-    -var maxDownload = 22000
-    if organizationIdentifiers
-      -var name = decodeURIComponent(JSON.parse(organizationIdentifiers).name)
-      -var ror = JSON.parse(organizationIdentifiers).ror
-      -var grid = JSON.parse(organizationIdentifiers).grid
-      -var ringgold = JSON.parse(organizationIdentifiers).ringgold
-      -var domains = JSON.parse(organizationIdentifiers).domains
-      -var csvFulllink = "./download/full/?organizationIdentifiers="+organizationIdentifiers
-      -var csvBrieflink = "./download/brief/?organizationIdentifiers="+organizationIdentifiers
-      div.col
-        h4= "Found " + itemCount + " ORCIDs affiliated with " + name + " using the identifiers: "
-        div.text-muted= "ROR: " + ror
-        div.text-muted= "GRID: " + grid
-        div.text-muted= "Ringgold: " + ringgold
-        div.text-muted= "Email domains: " + domains
-      if itemCount > 0
+  #query.container
+    p= "Enter the organization name, select the appropriate organization, then click 'Submit' to search for all affiliated ORCIDs available for public view"
+    form(action="/" method="get")
+      fieldset
+        select(id='ror-api',name='organizationIdentifiers',placeholder='Start typing an institution name...')
+        input(type='hidden', id='currentPage', name='currentPage', value='1')
+        input(type="submit" value="Get ORCID iDs")
+
+  #results.container
+    div.row
+      -var maxPages = Math.min(parseInt(numberOfPages),10000/parseInt(perPage)+1)
+      -var maxDownload = 22000
+      if organizationIdentifiers
+        -var name = decodeURIComponent(JSON.parse(organizationIdentifiers).name)
+        -var ror = JSON.parse(organizationIdentifiers).ror
+        -var grid = JSON.parse(organizationIdentifiers).grid
+        -var ringgold = JSON.parse(organizationIdentifiers).ringgold
+        -var domains = JSON.parse(organizationIdentifiers).domains
+        -var csvFulllink = "./download/full/?organizationIdentifiers="+organizationIdentifiers
+        -var csvBrieflink = "./download/brief/?organizationIdentifiers="+organizationIdentifiers
         div.col
-          if itemCount > 10000
-            -const maxItems = 10000+parseInt(perPage)
-            p= "Due to limitations of the ORCID public API we are only able to display " + maxItems.toString() + " ORCIDs in the table below. However, downloads can include up to " + maxDownload.toString() + " ORCIDs."
-            if perPage < 1000
-              p Increasing the perPage parameter to 1000 will display the maximum number of items based on the ORCID public API (11000)
-          if itemCount > maxDownload
-            p= "Due to limitations of the ORCID public API we cannot offer a CSV download for results sets greater than " + maxDownload
-          else
-            div
-              a(href=`${csvBrieflink}`)= "Download brief information as CSV"
-              p= "(the estimated time to generate the brief download is "+Math.ceil(itemCount/1000/10)+" seconds)"
-              div The brief CSV contains the same columns as the table below.
-          if itemCount > 11000
-            div
-              p= "Due to limitations of the ORCID public API we cannot offer a CSV download of fuller information for results sets greater than 11000."
-          else
-            div
-              a(href=`${csvFulllink}`)= "Download fuller information as CSV"
-              span.spinner-border.text-primary.invisible(role="status" id="csvdownloadSpinner")
-                span.visually-hidden Downloading now...
-              p= "(the estimated time to generate the fuller download is "+Math.ceil(itemCount/10/60)+" minutes)"
-              div The fuller CSV includes: ORCID, date record last updated, name, all known education affilations, all known employment affiliations, SCOPUS and other IDs, list of known emails, number of works listed on the ORCiD record
-  #resultsTable.container
-    if itemCount > 0
-      +pagination(5, maxPages, 5, currentPage, `?${urlQuery}&currentPage=`)
-      table.table.table-striped
-        tr
-          th ORCID
-          th Name
-          th Current affiliations
-          th Past affiliations
-          th Email
-        each orcid, index in orcids
+          h4= "Found " + itemCount + " ORCIDs affiliated with " + name + " using the identifiers: "
+          div.text-muted= "ROR: " + ror
+          div.text-muted= "GRID: " + grid
+          div.text-muted= "Ringgold: " + ringgold
+          div.text-muted= "Email domains: " + domains
+        if itemCount > 0
+          div.col
+            if itemCount > 10000
+              -const maxItems = 10000+parseInt(perPage)
+              p= "Due to limitations of the ORCID public API we are only able to display " + maxItems.toString() + " ORCIDs in the table below. However, downloads can include up to " + maxDownload.toString() + " ORCIDs."
+              if perPage < 1000
+                p Increasing the perPage parameter to 1000 will display the maximum number of items based on the ORCID public API (11000)
+            if itemCount > maxDownload
+              p= "Due to limitations of the ORCID public API we cannot offer a CSV download for results sets greater than " + maxDownload
+            else
+              div
+                a(href=`${csvBrieflink}`)= "Download brief information as CSV"
+                p= "(the estimated time to generate the brief download is "+Math.ceil(itemCount/1000/10)+" seconds)"
+                div The brief CSV contains the same columns as the table below.
+            if itemCount > 11000
+              div
+                p= "Due to limitations of the ORCID public API we cannot offer a CSV download of fuller information for results sets greater than 11000."
+            else
+              div
+                a(href=`${csvFulllink}`)= "Download fuller information as CSV"
+                span.spinner-border.text-primary.invisible(role="status" id="csvdownloadSpinner")
+                  span.visually-hidden Downloading now...
+                p= "(the estimated time to generate the fuller download is "+Math.ceil(itemCount/10/60)+" minutes)"
+                div The fuller CSV includes: ORCID, date record last updated, name, all known education affilations, all known employment affiliations, SCOPUS and other IDs, list of known emails, number of works listed on the ORCiD record
+    #resultsTable.container
+      if itemCount > 0
+        +pagination(5, maxPages, 5, currentPage, `?${urlQuery}&currentPage=`)
+        table.table.table-striped
           tr
-            td= orcid.orcid
-            td= orcid['given-names'] + " " + orcid['family-name']
-            td!= orcid['current-institution-affiliation-name'].split(",").join(";<br />")
-            td!= orcid['past-institution-affiliation-name'].split(",").join(";<br />")
-            td!= orcid.email.split(",").join(";<br />")
+            th ORCID
+            th Name
+            th Current affiliations
+            th Past affiliations
+            th Email
+          each orcid, index in orcids
+            tr
+              td= orcid.orcid
+              td= orcid['given-names'] + " " + orcid['family-name']
+              td!= orcid['current-institution-affiliation-name'].split(",").join(";<br />")
+              td!= orcid['past-institution-affiliation-name'].split(",").join(";<br />")
+              td!= orcid.email.split(",").join(";<br />")
 
-      +pagination(5, maxPages, 5, currentPage, `?${urlQuery}&currentPage=`)
+        +pagination(5, maxPages, 5, currentPage, `?${urlQuery}&currentPage=`)

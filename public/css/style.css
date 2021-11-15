@@ -11,3 +11,7 @@ body {
   float: left;
   margin-right: 15px;
 }
+
+.remove {
+  height: 100%
+}
