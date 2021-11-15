@@ -5,10 +5,10 @@ include ./mixins/pagination.pug
 block content
 
   #query.container
-    p= "Enter the organization name, select the appropriate organization, then click 'Submit' to search for all affiliated ORCIDs available for public view"
+    p= "Enter the organization name, select the appropriate organization, then click 'Submit' to search for all affiliated ORCIDs available for public view. Note that the search box uses the Research Organization Registry and may require the full organization name to be entered to find the best results"
     form(action="/" method="get")
       fieldset
-        select(id='ror-api',name='organizationIdentifiers',placeholder='Start typing an institution name...')
+        select(id='ror-api',name='organizationIdentifiers',placeholder='Type an institution name...')
         input(type='hidden', id='currentPage', name='currentPage', value='1')
         input(type="submit" value="Get ORCID iDs")
 

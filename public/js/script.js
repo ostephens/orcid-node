@@ -51,6 +51,9 @@ function selectBoxes() {
       });
     },
   render: {
+    no_results:function(data,escape){
+			return '<div class="no-results">No results found for "'+escape(data.input)+'". You may need to type the institutions full name to get a result.</div>';
+		},
     item: function(item, escape) {
   				return `<div class="py-2 d-flex bg-light">
                     <div class="mb-1">
