@@ -13,16 +13,13 @@ html
 
   body(onload='selectBoxes()')
     nav.navbar.navbar-expand-sm.navbar-light.bg-primary
-      .container-fluid.bg-primary.py-3
-        .container
-          .row.py-3
-            .col-md-9
-              a.navbar-brand(href='/').text-white= appName
-      ul.navbar-nav
-        li.nav-item
-          a.nav-link(href='/').text-white Home
-        li.nav-item
-          a.nav-link(href='/about').text-white About
+      a.navbar-brand(href='/').text-white= appName
+      div.collapse.navbar-collapse
+        ul.navbar-nav.mr-auto
+          li.nav-item
+            a.nav-link(href='/').text-grey Home
+          li.nav-item
+            a.nav-link(href='/about').text-grey About
 
     #content.container
       block content
