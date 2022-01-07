@@ -10,64 +10,125 @@ function selectRegion() {
 }
 
 function selectBoxes() {
-  new TomSelect('#ror-api',{
-  plugins: {
-		remove_button:{
-			title:'Remove this item'
-		}
-	},
-  valueField: 'idList',
-  labelField: 'name',
-  searchField: 'name',
-  maxOptions: 20,
-  load: function(query, callback) {
-    var url = 'https://api.ror.org/organizations?query=' + encodeURIComponent(query);
-    fetch(url)
-      .then(response => response.json())
-      .then(json => {
-        let data = json.items.map(item => {
-          let idList = {
-            ror: item.id,
-            grid: item.external_ids.GRID.preferred,
-            name: encodeURIComponent(item.name)
-          }
-          let idMapping = idMappings.find(inst => inst.ror === item.id);
-          if(idMapping != undefined) {
-            idList.ringgold = idMapping.ringgold
-            idList.domains = idMapping.domains
-            idList.name = encodeURIComponent(item.name)
-          }
-          let i = {
-            id: item.id,
-            name: item.name,
-            idList: JSON.stringify(idList)
-          }
-          //console.log(i);
-          return i
-        })
-        callback(data);
-      }).catch(()=>{
-        callback();
-      });
+  // new TomSelect('#ror-api',{
+  // plugins: {
+  //   remove_button:{
+  //     title:'Remove this item'
+  //   }
+  // },
+  // valueField: 'idList',
+  // labelField: 'name',
+  // searchField: 'name',
+  // maxOptions: 20,
+  // load: function(query, callback) {
+  //   var url = 'https://api.ror.org/organizations?query=' + encodeURIComponent(query);
+  //   fetch(url)
+  //     .then(response => response.json())
+  //     .then(json => {
+  //       let data = json.items.map(item => {
+  //         let idList = {
+  //           ror: item.id,
+  //           grid: item.external_ids.GRID.preferred,
+  //           name: encodeURIComponent(item.name)
+  //         }
+  //         let idMapping = idMappings.find(inst => inst.ror === item.id);
+  //         if(idMapping != undefined) {
+  //           idList.ringgold = idMapping.ringgold
+  //           idList.domains = idMapping.domains
+  //           idList.name = encodeURIComponent(item.name)
+  //         }
+  //         let i = {
+  //           id: item.id,
+  //           name: item.name,
+  //           idList: JSON.stringify(idList)
+  //         }
+  //         //console.log(i);
+  //         return i
+  //       })
+  //       callback(data);
+  //     }).catch(()=>{
+  //       callback();
+  //     });
+  //   },
+  // render: {
+  //   no_results:function(data,escape){
+  //     return '<div class="no-results">No results found for "'+escape(data.input)+'". You may need to type the institutions full name to get a result.</div>';
+  //   },
+  //   item: function(item, escape) {
+  //         return `<div class="py-2 d-flex bg-light">
+  //                   <div class="mb-1">
+  //                     <span class="h4">
+  //                       ${ escape(item.name) }
+  //                     </span>
+  //                     <div class="text-muted">ROR: ${ JSON.parse(item.idList).ror }</div>
+  //                     <div class="text-muted">GRID: ${ JSON.parse(item.idList).grid }</div>
+  //                     <div class="text-muted">Ringgold: ${ JSON.parse(item.idList).ringgold }</div>
+  //                     <div class="text-muted">Email domains: ${ JSON.parse(item.idList).domains }</div>
+  //                 </div>
+  //               </div>`
+  //               ;
+  //       }
+  // }
+  // });
+  new TomSelect('#uk-he',{
+    plugins: {
+      remove_button:{
+        title:'Remove this item'
+      }
     },
-  render: {
-    no_results:function(data,escape){
-			return '<div class="no-results">No results found for "'+escape(data.input)+'". You may need to type the institutions full name to get a result.</div>';
-		},
-    item: function(item, escape) {
-  				return `<div class="py-2 d-flex bg-light">
-                    <div class="mb-1">
-                      <span class="h4">
-      									${ escape(item.name) }
-      								</span>
-      								<div class="text-muted">ROR: ${ JSON.parse(item.idList).ror }</div>
+    valueField: 'idList',
+    labelField: 'name',
+    searchField: ['name','idList'],
+    load: function(query, callback) {
+      var self = this;
+      if( self.loading > 1 ){
+        callback();
+        return;
+      }
+      var url = 'https://raw.githubusercontent.com/ostephens/uk-he-orcids/main/idMappings.json';
+      fetch(url)
+        .then(response => response.json())
+        .then(json => {
+          let data = json.map(item => {
+            let idList = {
+              ror: item.ror,
+              grid: item.grid,
+              ringgold: item.ringgold,
+              domains: item.domains,
+              name: encodeURIComponent(item.name)
+            }
+            let i = {
+              id: item.ror,
+              name: item.name,
+              idList: JSON.stringify(idList)
+            }
+            return i
+          })
+          console.log(data)
+          callback(data);
+          self.settings.load = null;
+        }).catch(()=>{
+          callback();
+        });
+      },
+    render: {
+      no_results:function(data,escape){
+        return '<div class="no-results">No results found for "'+escape(data.input)+'". You may need to type the institutions full name to get a result.</div>';
+      },
+      item: function(item, escape) {
+        return `<div class="py-2 d-flex bg-light">
+                  <div class="mb-1">
+                    <span class="h4">
+                      ${ escape(item.name) }
+                    </span>
+                      <div class="text-muted">ROR: ${ JSON.parse(item.idList).ror }</div>
                       <div class="text-muted">GRID: ${ JSON.parse(item.idList).grid }</div>
                       <div class="text-muted">Ringgold: ${ JSON.parse(item.idList).ringgold }</div>
                       <div class="text-muted">Email domains: ${ JSON.parse(item.idList).domains }</div>
-      						</div>
-                </div>`
-                ;
-  			}
-  }
+                </div>
+              </div>`
+              ;
+      }
+    }
   });
 }
