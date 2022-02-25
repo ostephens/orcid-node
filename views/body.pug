@@ -19,11 +19,19 @@ block content
       if organizationIdentifiers
         -var name = decodeURIComponent(JSON.parse(organizationIdentifiers).name)
         -var ror = JSON.parse(organizationIdentifiers).ror
-        -var fullFile = ror.split("/")[-1]
+        -var rorArray = ror.split("/")
+        -var bareROR = rorArray[rorArray.length-1]
         -var grid = JSON.parse(organizationIdentifiers).grid
         -var ringgold = JSON.parse(organizationIdentifiers).ringgold
         -var domains = JSON.parse(organizationIdentifiers).domains
-        -var csvFulllink = "./download/full/?organizationIdentifiers="+organizationIdentifiers
+        if(process.env.ORCID_FULL_CSV_LOCATION && typeof process.env.ORCID_FULL_CSV_LOCATION !== "undefined")
+          -var csvFulllink = process.env.ORCID_FULL_CSV_LOCATION + bareROR + ".csv"
+        else
+          -var csvFulllink = undefined
+        if(process.env.ORCID_FULL_JSON_LOCATION && typeof process.env.ORCID_FULL_JSON_LOCATION !== "undefined")
+          -var JSONFulllink = process.env.ORCID_FULL_JSON_LOCATION + bareROR + ".json"
+        else
+          -var JSONFulllink = undefined
         -var csvBrieflink = "./download/brief/?organizationIdentifiers="+organizationIdentifiers
         div.col
           h4= "Found " + itemCount + " ORCIDs affiliated with " + name + " using the identifiers: "
@@ -39,22 +47,23 @@ block content
               if perPage < 1000
                 p Increasing the perPage parameter to 1000 will display the maximum number of items based on the ORCID public API (11000)
             if itemCount > maxDownload
-              p= "Due to limitations of the ORCID public API we cannot offer a CSV download for results sets greater than " + maxDownload
+              p= "Due to limitations of the ORCID public API we cannot offer a CSV download for results sets greater than " + maxDownload.toString()
             else
               div
                 a(href=`${csvBrieflink}`)= "Download brief information as CSV"
                 p= "(the estimated time to generate the brief download is "+Math.ceil(itemCount/1000/10)+" seconds)"
                 div The brief CSV contains the same columns as the table below.
-            if itemCount > 11000
-              div
-                p= "Due to limitations of the ORCID public API we cannot offer a CSV download of fuller information for results sets greater than 11000."
-            else
-              div
-                a(href=`${csvFulllink}`)= "Download fuller information as CSV"
-                span.spinner-border.text-primary.invisible(role="status" id="csvdownloadSpinner")
-                  span.visually-hidden Downloading now...
-                p= "(the estimated time to generate the fuller download is "+Math.ceil(itemCount/10/60)+" minutes)"
-                div The fuller CSV includes: ORCID, date record last updated, name, all known education affilations, all known employment affiliations, SCOPUS and other IDs, list of known emails, number of works listed on the ORCiD record
+              if(csvFulllink && typeof csvFulllink !== "undefined")
+                div
+                  a(href=`${csvFulllink}`)= "Download fuller information as CSV"
+                  div The fuller CSV includes: ORCID, date record last updated, name, all known education affilations, all known employment affiliations, SCOPUS and other IDs, list of known emails, number of works listed on the ORCiD record
+                  if(JSONFulllink && typeof JSONFulllink !== "undefined")
+                    div
+                      a(href=`${JSONFulllink}`)= "Download fuller information as JSON"
+                      div The JSON download include the full ORCID record for each ORCID and maybe quite large.
+              else
+                div
+                  p= "We cannot currently offer a CSV download of fuller information for this result set."
     #resultsTable.container
       if itemCount > 0
         +pagination(5, maxPages, 5, currentPage, `?${urlQuery}&currentPage=`)
